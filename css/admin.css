@@ -1,0 +1,80 @@
+.fewster_file,
+.fewster_new{
+	border-top: 1px solid #000;
+	background: #fff;
+	width:98%;
+	margin: 5px 0px;
+	padding: 5px;
+}
+
+.fewster_file_name{
+	font-weight: bold;
+}	
+
+.fewster-anti-bad_page_fewster-diff #wpbody-content p.fewster_diff{
+	margin:0px;
+	padding:0px;
+	font-size:20px;
+}
+
+.fewster-anti-bad_page_fewster-integrity-core #wpbody-content li,
+.fewster-anti-bad_page_fewster-integrity-plugins #wpbody-content li{
+	border:1px solid #000;
+	background:#fff;
+	padding:3px;
+}
+
+.fewster_difference{
+	background:#fff;
+}
+
+.fewster_added{
+	background:#f00;
+}
+
+.fewster_removed{
+	background:#f88;
+}
+
+#fewster_importProgress{
+	display: none;
+}
+
+.download{
+	background:#fff;
+	padding: 5px;
+	margin-bottom: 10px;
+}
+
+.download-needed{
+	border-left: 5px solid #f00;
+}
+
+.fewster_integrity_response{
+	margin-left: 10px;
+}
+
+#fewster_importProgress{
+	background:#FFF;
+	text-align:center;
+	margin-bottom: 10px;
+}
+
+#importProgressBar{
+	width:100%;
+	background:#0F0;
+}
+
+.fewster_notice_good{
+	background:#afa;
+	margin: 5px 0px;
+	display: none;
+	padding: 5px;
+}
+
+.fewster_notice_bad{
+	background:#faa;
+	margin: 5px 0px;
+	display: none;
+	padding: 5px;
+}
