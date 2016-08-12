@@ -154,3 +154,5 @@
 	require_once("process/fewster_remote_repair.php");
 	require_once("process/fewster_admin_notices.php");
 	require_once("process/fewster_menu.php");
+	require_once("process/fewster_bypass.php");
+	require_once("process/fewster_update_all.php");
