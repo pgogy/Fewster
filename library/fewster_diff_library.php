@@ -22,7 +22,7 @@
 				unlink($dir['path'] . '/fewster.zip');
 				if($file_data){
 					require_once("class.Diff.php");
-					$diff = new Diff;					
+					$diff = new FileDiff();					
 					echo "<p><span class='fewster_difference'>" . __("White lines are the same") . "</span></p>";
 					echo "<p><span class='fewster_removed'>" . __("Pink lines have been removed") . "</span></p>";
 					echo "<p><span class='fewster_added'>" . __("Red lines have been added") . "</span></p>";
