@@ -14,7 +14,7 @@ http://creativecommons.org/publicdomain/zero/1.0/legalcode
 */
 
 // A class containing functions for computing diffs and formatting the output.
-class Diff{
+class FileDiff{
 
   // define the constants
   const UNMODIFIED = 0;
