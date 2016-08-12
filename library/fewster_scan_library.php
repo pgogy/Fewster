@@ -15,6 +15,18 @@
 			return $site_files;
 		
 		}
+
+		function update_all(){
+		
+			$dir = $this->get_config_path();
+			$files = array();
+			$counter = 0;
+			
+			$site_files = $this->recurse($dir, array($this, "get_data_first"), $files, $counter);
+			
+			return $site_files;
+		
+		}
 		
 		function update_theme($file){
 		
@@ -166,6 +178,7 @@
 				}else{
 					echo "<h4>" . $counter . "  " . __('previously scanned file has an issue') . "</h4>";
 				}
+				$this->counter = $counter;
 				echo $output;
 			}
 		
