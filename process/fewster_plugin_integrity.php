@@ -49,7 +49,8 @@
 			echo "<h2>" . __("Warning") . "</h2>";
 			echo "<p>" . __("Some files have issues. You can ignore these issues and continue if they are known problems, or fix using remote repair and then run the check again") . "</p>";
 			echo "<p><a href='" . admin_url("admin.php?page=fewster-integrity-plugins") . "'>" . __("Check again") . "</a></p>";
-			echo "<p><a href='" . admin_url("admin.php?page=fewster-scan") . "'>" . __("Run a first scan") . "</a></p></div>";
+			echo "<p><a href='" . admin_url("admin.php?page=fewster-scan") . "'>" . __("Run a first scan") . "</a></p>";
+			echo "<p><a href='" . admin_url("admin.php?page=fewster-scan-bypass&type=plugins") . "'>" . __("Accept integrity results even with issues") . "</a></p></div>";
 			echo "<div id='fewster_importProgress'><p><strong>" . __("Scan Progress") . " <span id='importTotal'></span></strong></p><div id='importProgressBar'></div></div>";
 			echo '<form id="fewster_integrity_form" action="javascript:function connect(){return false;};">';
 			echo "<input type='submit' id='fewster_integrity' value='" . __("Run Integrity Check") . "' />";	
