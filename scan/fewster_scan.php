@@ -16,6 +16,12 @@
 			$library = new fewster_scan_library();
 			$library->scan();
 			update_option("fewster_last_scan", time());
+			if($library->counter!=0){
+				?><form action="<?PHP echo admin_url("admin.php?page=fewster-update_
+-all"); ?>" method="POST">
+				<input type="submit" class="button-primary" value="<?php _e('Update file information and accept above changes') ?>" />
+				</form><?PHP
+			}
 		}
 	
 	}
