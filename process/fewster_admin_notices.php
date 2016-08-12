@@ -18,23 +18,24 @@
 	
 		function notices(){
 			$this->check_integrity();
-		//	if($this->integrity){
+			if($this->integrity){
 				$this->check_scan();
 				$this->check_scan_addons();
 				$this->check_plugin_theme_core();
-		//	}else{
-		//		$this->output .= "<p><strong>" . __("You must run these checks for Fewster to work") . "</strong></p>";
-		//	}
-			//if($this->scan){
+			}else{
+				$this->output .= "<p><strong>" . __("You must run these checks for Fewster to work") . "</strong></p>";
+				$this->ran_scan();
+			}
+			if($this->scan){
 				$this->check_scan_time();
-			//}
+			}
 			$this->check_version();
-			//if($this->register){
+			if($this->register){
 				$this->check_plugins();
 				$this->new_plugins();
 				$this->check_themes();
 				$this->new_themes();
-			//}
+			}
 			$this->output();
 		}
 		
@@ -60,6 +61,11 @@
 					}
 				}
 			}
+		}
+
+		function ran_scan(){
+
+			$this->output .= '<p><strong>' . __("If you've ran a scan") . '</strong> : <a href="javascript:fewster_accept_scan()">' . __("click here to suppress these messages") . '</p>';
 		}
 		
 		function new_plugins(){
