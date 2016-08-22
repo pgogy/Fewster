@@ -18,6 +18,14 @@
 		function scripts(){
 			wp_enqueue_style( 'fewster_admin', plugins_url() . "/fewster/css/admin.css" );
 			wp_enqueue_script( 'fewster_menu_fix', plugins_url() . "/fewster/js/menu.js" );
+			wp_enqueue_script( 'fewster_accept', plugins_url() . "/fewster/js/accept.js" );
+			wp_localize_script( 'fewster_accept', 'fewster_accept', 
+																				array( 
+																						'ajaxURL' => $ajax_base . "/wp-admin/admin-ajax.php",
+																						'nonce' => wp_create_nonce("fewster_accept")
+																					)
+			);
+
 		}
 	
 		function menu_create(){
