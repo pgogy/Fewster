@@ -17,7 +17,7 @@
 			
 			$output = "";
 			
-			$base = plugin_dir_path(__FILE__) . "/../../";
+			$base = plugin_dir_path(__FILE__) . "../../";
 			$dir = opendir($base);
 			while($file = readdir($dir)){
 				if($file!="."&&$file!=".."){
@@ -28,8 +28,13 @@
 								if(!is_dir($base . $file . "/" . $inner_file)){
 									$data = get_plugin_data($base . $file . "/" . $inner_file);
 									if($data['Name']!=""){
+
 										$result = $wpdb->get_row("select * from " . $wpdb->prefix . "fewster_site_info where path ='" . str_replace("\\","/",$base . $file . "/" . $inner_file) . "'");
 										if(!$result){
+
+
+											
+
 											$wpdb->query( 
 												$wpdb->prepare( 
 													"INSERT INTO " . $wpdb->prefix . "fewster_site_info (path,name,type,version)VALUES(%s,%s,%s,%s)",str_replace("\\","/",$base . $file . "/" . $inner_file),$data['Name'], "plugin", $data['Version']
