@@ -167,7 +167,7 @@
 				$response = $wpdb->get_row( "SELECT * FROM " . $wpdb->prefix . "fewster_site_info WHERE name = '" . $data['Name'] . "' and type='plugin'" );
 				if(isset($response->version)){
 					if($data['Version']!=$response->version){
-						$this->output .= '<p>' . __("Plugin") . " " . $data['Name'] . " " . __("has been updated") . ' <a target="_blank" href="' . admin_url("admin.php?page=fewster-update-plugin&root=") . $response->path . '">' . __("Run an update") . '</a></p>';
+						$this->output .= '<p>' . __("Plugin") . " " . $data['Name'] . " " . __("has been updated") . ' <a target="_blank" href="' . admin_url("admin.php?page=fewster-update-plugin&root=") . str_replace("//","/",$response->path) . '">' . __("Run an update") . '</a></p>';
 					}
 				}
 			}	
