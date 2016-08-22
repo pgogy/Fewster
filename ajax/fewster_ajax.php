@@ -4,13 +4,21 @@
 	
 		function __construct(){
 			add_action("wp_ajax_fewster_direct_core", array($this, "core"));
+			add_action("wp_ajax_fewster_accept_scan", array($this, "accept"));
 			add_action("wp_ajax_fewster_direct_addons", array($this, "addons"));
 			add_action("wp_ajax_fewster_integrity_done", array($this, "done"));
 		}
 		
+		function accept(){
+			if(wp_verify_nonce($_POST['nonce'],"fewster_accept")){
+				update_option("fewster_plugin_integrity",true);
+				update_option("fewster_core_integrity",true);
+				echo __("Results accepted. Now scan your site");	
+			}
+			die();
+		}		
 		function done(){
 			if(wp_verify_nonce($_POST['nonce'],"fewster_integrity")){
-				print_r($_POST);
 				if($_POST['old_action']=="fewster_direct_addons"){
 					update_option("fewster_plugin_integrity",true);
 				}
