@@ -16,16 +16,16 @@
 			$library = new fewster_scan_library();
 			$files = $library->update_all();
 			global $wpdb;
-			foreach($files[1] as $file){
+			foreach($files[0] as $file){
 				$update = $wpdb->update( 
 					$wpdb->prefix . 'fewster_file_info', 
 					array( 
-						'file_m_time' => filemtime($file['name']),	
-						'file_size' => filesize($file['name']),	
-						'file_zip' => $library->zip_data($file['name']),	
+						'file_m_time' => filemtime($file),	
+						'file_size' => filesize($file),	
+						'file_zip' => $library->zip_data($file),	
 						'timestamp' => time()	
 					), 
-					array( 'file_path' => $file['name'] ), 
+					array( 'file_path' => $file ), 
 					array( 
 						'%d',
 						'%d',
@@ -34,16 +34,16 @@
 					), 
 					array( '%s' ) 
 				);
-				if($update == 0){
-					$wpdb->query( 
+			}
+			foreach($files[1] as $file){
+				$wpdb->query( 
 						$wpdb->prepare( 
-							"INSERT INTO " . $wpdb->prefix . "fewster_file_info (file_path,file_zip,file_size,file_m_time,timestamp)VALUES(%s,%s,%d,%d,%d)",$file['name'], $file['zip'], $file['size'], $file['time'], time()
+							"INSERT INTO " . $wpdb->prefix . "fewster_file_info (file_path,file_zip,file_size,file_m_time,timestamp)VALUES(%s,%s,%d,%d,%d)",$file, $library->zip_data($file), filesize($file), filemtime($file), time()
 						)
 					);
-				}
 			}
 			echo "<h2>" . __("Fewster : updating all") . "</h2>";
-			echo "<p>" . $files[0] . " " . __("files updated") . "</p>";
+			echo "<p>" . (count($files[0]) + count($files[1]))  . " " . __("files updated") . "</p>";
 			global $wp_version;
 			$wpdb->update( 
 				$wpdb->prefix . 'fewster_site_info', 
