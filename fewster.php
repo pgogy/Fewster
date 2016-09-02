@@ -13,15 +13,24 @@
 			add_action("admin_menu", array($this, "menu_create"));
 			add_action('network_admin_menu', array($this, 'menu_create'));
 			add_action('admin_enqueue_scripts', array($this, 'scripts'));
+			add_filter('cron_schedules', array($this,'additional_schedules'));
 		}
 		
+		function additional_schedules($schedules) {
+			$schedules['every60sec'] = array('interval' => 60, 'display' => __('60 Seconds'));
+			$schedules['twohours'] = array('interval' => 120*60, 'display' => __('Two Hours'));
+			$schedules['fourhours'] = array('interval' => 240*60, 'display' => __('Four Hours'));
+			$schedules['eighthours'] = array('interval' => 480*60, 'display' => __('Eight Hours'));
+			return $schedules;
+		}
+
 		function scripts(){
 			wp_enqueue_style( 'fewster_admin', plugins_url() . "/fewster/css/admin.css" );
 			wp_enqueue_script( 'fewster_menu_fix', plugins_url() . "/fewster/js/menu.js" );
 			wp_enqueue_script( 'fewster_accept', plugins_url() . "/fewster/js/accept.js" );
 			wp_localize_script( 'fewster_accept', 'fewster_accept', 
 																				array( 
-																						'ajaxURL' => $ajax_base . "/wp-admin/admin-ajax.php",
+																						'ajaxURL' => site_url() . "/wp-admin/admin-ajax.php",
 																						'nonce' => wp_create_nonce("fewster_accept")
 																					)
 			);
@@ -48,7 +57,9 @@
 		}	
 		
 		function activation(){
-			wp_schedule_event(time(), 'hourly', 'fewster_hour_scan');
+			wp_schedule_event(time(), 'every60sec', 'fewster_new_scan');
+			wp_schedule_event(time(), 'every60sec', 'fewster_size_scan');
+			wp_schedule_event(time(), 'every60sec', 'fewster_time_scan');
 		}
 		
 		function database_activation(){
@@ -92,33 +103,84 @@
 
 		}
 		
-		function hour_scan(){
-
+		function new_scan(){
+		
 			require_once("library/fewster_scan_library.php");
 			$library = new fewster_scan_library();
-			$data = $library->scan_cron();
+			$data = $library->scan_new_cron();
+			
 			$email = "";
 
-			if($data[4]!=""){
+			if($data[2]!=""){
 				$email = "<h2>" . $data[0] . " files have been scanned</h2>";
 				if($new!=1){
 					$email .= "<p>" . $data[1] . " new files exist</p>";
 				}else{
 					$email .= "<p>" . $data[1] . " new file exists</p>";
 				}
-				if($counter!=1){
-					$email .= "<p>" . $data[3] . " files changed</p>";
+				$email .= "<h2>Details</h2>";
+				$email .= $data[2];
+				$last_changed = get_option("fewster_new_files_changed");
+				if($last_changed!=$data[2]){
+					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					wp_mail(get_option("fewster_email"), __("Fewster Report : New files detected"), $email);
+					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					update_option("fewster_new_files_changed", ($data[2]));
+				}
+			}
+				
+		}
+		
+		function size_scan(){
+
+			require_once("library/fewster_scan_library.php");
+			$library = new fewster_scan_library();
+			$data = $library->scan_size_cron();
+			
+			$email = "";
+
+			if($data[4]!=""){
+				$email = "<h2>" . $data[0] . " files have been scanned</h2>";
+				if($new!=1){
+					$email .= "<p>" . $data[1] . " file size changes</p>";
 				}else{
-					$email .= "<p>" . $data[3] . " file changed</p>";
+					$email .= "<p>" . $data[1] . " file size changed</p>";
 				}
 				$email .= "<h2>Details</h2>";
 				$email .= $data[4];
-				$last_changed = get_option("fewster_files_changed");
-				if($last_changed!=($data[1] . "---" . $data[3])){
+				$last_changed = get_option("fewster_size_files_changed");
+				if($last_changed!=$data[4]){
 					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					wp_mail(get_option("fewster_contact_email"), "Fewster Report : Site Changes detected", $email);
+					wp_mail(get_option("fewster_email"), __("Fewster Report : Size changes detected"), $email);
 					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					update_option("fewster_files_changed", ($data[1] . "---" . $data[2]));
+					update_option("fewster_size_files_changed", $data[4]);
+				}
+			}
+				
+		}
+		
+		function time_scan(){
+			
+			require_once("library/fewster_scan_library.php");
+			$library = new fewster_scan_library();
+			$data = $library->scan_time_cron();
+			$email = "";
+
+			if($data[4]!=""){
+				$email = "<h2>" . $data[0] . " files have been scanned</h2>";
+				if($new!=1){
+					$email .= "<p>" . $data[1] . " time stamps changed</p>";
+				}else{
+					$email .= "<p>" . $data[1] . " time stamp changed</p>";
+				}
+				$email .= "<h2>Details</h2>";
+				$email .= $data[4];
+				$last_changed = get_option("fewster_time_files_changed");
+				if($last_changed!=$data[4]){
+					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					wp_mail(get_option("fewster_email"), __("Fewster Report : Time stamp changes detected"), $email);
+					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					update_option("fewster_time_files_changed", $data[4]);
 				}
 			}
 				
@@ -126,6 +188,9 @@
 		
 		function deactivation(){
 			wp_clear_scheduled_hook('fewster_hour_scan');
+			wp_clear_scheduled_hook('fewster_new_scan');
+			wp_clear_scheduled_hook('fewster_size_scan');
+			wp_clear_scheduled_hook('fewster_time_scan');
 		}
 		
 		function set_content_type( $content_type ) {
@@ -142,7 +207,9 @@
 
 	register_deactivation_hook(__FILE__, array($fewster, 'deactivation'));
 	
-	add_action('fewster_hour_scan', array($fewster,'hour_scan'));
+	add_action('fewster_new_scan', array($fewster,'new_scan'));
+	add_action('fewster_size_scan', array($fewster,'size_scan'));
+	add_action('fewster_time_scan', array($fewster,'time_scan'));
 		
 	require_once("scan/fewster_scan.php");
 	require_once("process/fewster_register.php");
@@ -154,6 +221,8 @@
 	require_once("process/fewster_update_theme.php");
 	require_once("ajax/fewster_ajax.php");
 	require_once("process/fewster_see.php");
+	require_once("process/fewster_whitelist.php");
+	require_once("process/fewster_manage_whitelist.php");
 	require_once("process/fewster_diff.php");
 	require_once("process/fewster_add.php");
 	require_once("process/fewster_accept.php");
@@ -161,6 +230,6 @@
 	require_once("process/fewster_local_repair.php");
 	require_once("process/fewster_remote_repair.php");
 	require_once("process/fewster_admin_notices.php");
-	require_once("process/fewster_menu.php");
 	require_once("process/fewster_bypass.php");
 	require_once("process/fewster_update_all.php");
+	require_once("process/fewster_menu.php");
