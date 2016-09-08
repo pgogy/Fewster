@@ -6,6 +6,9 @@
 	
 		function __construct(){
 			$this->whitelist = get_option("fewster_whitelist");
+			if(!is_array($this->whitelist)){
+				$this->whitelist = array();
+			}
 		}
 	
 		function update_core(){
