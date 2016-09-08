@@ -72,7 +72,7 @@ class fewster_settings{
 		
 		add_settings_field(
 			'fewster_size_file',
-			'New file scan frequency',
+			'File size change scan frequency',
 			array($this,'size_file_function'),
 			'fewster-settings',
 			'fewster_setting_section'
@@ -80,7 +80,7 @@ class fewster_settings{
 		
 		add_settings_field(
 			'fewster_time_file',
-			'New file scan frequency',
+			'Timestamp change scan frequency',
 			array($this,'time_file_function'),
 			'fewster-settings',
 			'fewster_setting_section'
