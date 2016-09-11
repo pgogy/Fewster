@@ -243,6 +243,7 @@
 					}
 				}
 				echo "<h3>" . count($site_files[1]) . "  " . __('Files scanned') . "</h3>";
+								
 				if($new!=1){
 					echo "<h4>" . $new . "  " . __('new files detected') . "</h4>";
 				}else{
