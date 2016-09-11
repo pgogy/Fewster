@@ -9,36 +9,58 @@ class fewster_settings{
 	}
 	
 	function cron_check(){
-		if($_GET['page']=="fewster-settings"){
-			$crons = _get_cron_array();
-			$new = get_option("fewster_new_file");
-			$size = get_option("fewster_size_file");
-			$time = get_option("fewster_time_file");
-			foreach($crons as $timestamp => $job){
-	
-				if(isset($job['fewster_new_scan'])){
-					$details = array_pop($job['fewster_new_scan']);
-					print_r($details);
-					if($details['schedule']!=$new){
-						wp_unschedule_event( $timestamp, 'fewster_new_scan');
-						wp_schedule_event( time(), $new, 'fewster_new_scan');
+		
+		$new_schedule = false;
+		$size_schedule = false;
+		$time_schedule = false;
+		
+		if(isset($_GET['page'])){
+			if($_GET['page']=="fewster-settings"){
+				$crons = _get_cron_array();
+				$new = get_option("fewster_new_file");
+				$size = get_option("fewster_size_file");
+				$time = get_option("fewster_time_file");
+				foreach($crons as $timestamp => $job){
+		
+					if(isset($job['fewster_new_scan'])){
+						$details = array_pop($job['fewster_new_scan']);
+						if($details['schedule']!=$new){
+							wp_unschedule_event( $timestamp, 'fewster_new_scan');
+							wp_schedule_event( time(), $new, 'fewster_new_scan');
+							$new_schedule = true;
+						}
 					}
+				
+					if(isset($job['fewster_size_scan'])){
+						$details = array_pop($job['fewster_size_scan']);
+						if($details['schedule']!=$size){
+							wp_unschedule_event( $timestamp, 'fewster_size_scan');
+							wp_schedule_event( time(), $size, 'fewster_size_scan');
+							$size_schedule = true;
+						}
+					}
+				
+					if(isset($job['fewster_time_scan'])){
+						$details = array_pop($job['fewster_time_scan']);
+						if($details['schedule']!=$time){
+							wp_unschedule_event( $timestamp, 'fewster_time_scan');
+							wp_schedule_event( time(), $time, 'fewster_time_scan');
+							$time_schedule = true;
+						}
+					}
+					
 				}
-			
-				if(isset($job['fewster_size_scan'])){
-					$details = array_pop($job['fewster_size_scan']);
-					if($details['schedule']!=$size){
-						wp_unschedule_event( $timestamp, 'fewster_size_scan');
-						wp_schedule_event( time(), $size, 'fewster_size_scan');
-					}
+				
+				if(!$new_schedule){
+					wp_schedule_event( time(), $new, 'fewster_new_scan');
 				}
-			
-				if(isset($job['fewster_time_scan'])){
-					$details = array_pop($job['fewster_time_scan']);
-					if($details['schedule']!=$time){
-						wp_unschedule_event( $timestamp, 'fewster_time_scan');
-						wp_schedule_event( time(), $time, 'fewster_time_scan');
-					}
+				
+				if(!$size_schedule){
+					wp_schedule_event( time(), $size, 'fewster_size_scan');
+				}
+				
+				if(!$time_schedule){
+					wp_schedule_event( time(), $time, 'fewster_time_scan');
 				}
 				
 			}
