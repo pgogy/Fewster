@@ -113,7 +113,7 @@
 
 			if($data[2]!=""){
 				$email = "<h2>" . $data[0] . " files have been scanned</h2>";
-				if($new!=1){
+				if($data[1]!=1){
 					$email .= "<p>" . $data[1] . " new files exist</p>";
 				}else{
 					$email .= "<p>" . $data[1] . " new file exists</p>";
@@ -141,7 +141,7 @@
 
 			if($data[4]!=""){
 				$email = "<h2>" . $data[0] . " files have been scanned</h2>";
-				if($new!=1){
+				if($data[1]!=1){
 					$email .= "<p>" . $data[1] . " file size changes</p>";
 				}else{
 					$email .= "<p>" . $data[1] . " file size changed</p>";
@@ -168,7 +168,7 @@
 
 			if($data[4]!=""){
 				$email = "<h2>" . $data[0] . " files have been scanned</h2>";
-				if($new!=1){
+				if($data[1]!=1){
 					$email .= "<p>" . $data[1] . " time stamps changed</p>";
 				}else{
 					$email .= "<p>" . $data[1] . " time stamp changed</p>";
