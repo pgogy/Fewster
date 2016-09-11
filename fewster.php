@@ -118,12 +118,14 @@
 				}else{
 					$email .= "<p>" . $data[1] . " new file exists</p>";
 				}
-				$email .= "<h2>Details</h2>";
+				$email .= "<h2>" . __("Major changes") . "</h2>";
+				$email .= $this->site_check_overall();
+				$email .= "<h2>" . __("Details") . "</h2>";
 				$email .= $data[2];
 				$last_changed = get_option("fewster_new_files_changed");
 				if($last_changed!=$data[2]){
 					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					wp_mail(get_option("fewster_email"), __("Fewster Report : New files detected"), $email);
+					wp_mail(get_option("fewster_email"), __("Fewster Report : " . $data[1] . " new files detected"), $email);
 					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
 					update_option("fewster_new_files_changed", ($data[2]));
 				}
@@ -146,12 +148,14 @@
 				}else{
 					$email .= "<p>" . $data[1] . " file size changed</p>";
 				}
-				$email .= "<h2>Details</h2>";
+				$email .= "<h2>" . __("Major changes") . "</h2>";
+				$email .= $this->site_check_overall();
+				$email .= "<h2>" . __("Details") . "</h2>";
 				$email .= $data[4];
 				$last_changed = get_option("fewster_size_files_changed");
 				if($last_changed!=$data[4]){
 					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					wp_mail(get_option("fewster_email"), __("Fewster Report : Size changes detected"), $email);
+					wp_mail(get_option("fewster_email"), __("Fewster Report : " . $data[1] . " size changes detected"), $email);
 					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
 					update_option("fewster_size_files_changed", $data[4]);
 				}
@@ -173,17 +177,30 @@
 				}else{
 					$email .= "<p>" . $data[1] . " time stamp changed</p>";
 				}
-				$email .= "<h2>Details</h2>";
+				$email .= "<h2>" . __("Major changes") . "</h2>";
+				$email .= $this->site_check_overall();
+				$email .= "<h2>" . __("Details") . "</h2>";
 				$email .= $data[4];
 				$last_changed = get_option("fewster_time_files_changed");
 				if($last_changed!=$data[4]){
 					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					wp_mail(get_option("fewster_email"), __("Fewster Report : Time stamp changes detected"), $email);
+					wp_mail(get_option("fewster_email"), __("Fewster Report : " . $data[1] . " time stamp changes detected"), $email);
 					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
 					update_option("fewster_time_files_changed", $data[4]);
 				}
 			}
 				
+		}
+		
+		function site_check_overall(){
+			require_once(dirname(__FILE__) . "/process/fewster_admin_notices.php");
+			$fewster_admin_notices = new fewster_admin_notices();
+			$fewster_admin_notices->check_version();
+			$fewster_admin_notices->new_plugins();
+			$fewster_admin_notices->check_plugins();
+			$fewster_admin_notices->new_themes();
+			$fewster_admin_notices->check_themes();
+			return $fewster_admin_notices->email_output(); 
 		}
 		
 		function deactivation(){
