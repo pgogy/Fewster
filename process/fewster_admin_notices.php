@@ -69,6 +69,8 @@
 		}
 		
 		function new_plugins(){
+		
+			require_once(dirname(__FILE__) . "/../../../../wp-admin/includes/plugin.php");
 			
 			global $wpdb;
 			
@@ -161,6 +163,7 @@
 		}
 		
 		function check_plugins(){
+			require_once(dirname(__FILE__) . "/../../../../wp-admin/includes/plugin.php");
 			global $wpdb;
 			$plugins = get_plugins();
 			foreach($plugins as $plugin => $data){
@@ -192,6 +195,10 @@
 				}
 			}
 		
+		}
+		
+		function email_output(){
+			return $this->output;
 		}
 		
 		function output(){
