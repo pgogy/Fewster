@@ -158,7 +158,7 @@
 					$output .= $file_output;
 				}
 			}
-			return array(count($site_files[1]),$new,$new_output,$this->counter,$output);
+			return array(count($site_files[1]),$this->counter,$new_output,$this->counter,$output);
 		}
 	
 		function scan_time_cron(){
@@ -188,7 +188,7 @@
 					$output .= $file_output;
 				}
 			}
-			return array(count($site_files[1]),$new,$new_output,$this->counter,$output);
+			return array(count($site_files[1]),$this->counter,$new_output,$this->counter,$output);
 		}
 	
 		function scan(){
