@@ -35,6 +35,8 @@
 			$submenu['fewster-anti-bad'][19][3]="";
 			$submenu['fewster-anti-bad'][20][0]="";
 			$submenu['fewster-anti-bad'][20][3]="";
+			$submenu['fewster-anti-bad'][21][0]="";
+			$submenu['fewster-anti-bad'][21][3]="";
 			
 			
 			
