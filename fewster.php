@@ -43,17 +43,33 @@
 		
 		function fewster_main(){
 			?>
-				<h1>Fewster Anti-Bad</h1>
+				<h1><?PHP echo __("Fewster Anti-Bad"); ?></h1>
 				<p>
-					Use "Scan" to scan the site for new files or size changes
+					<?PHP echo __("Use"); ?> <a href="<?PHP echo admin_url("admin.php?page=fewster-scan"); ?>"><?PHP echo __("Scan"); ?></a> <?PHP echo __("to scan the site for new files or size changes"); ?>
 				</p>
 				<p>
-					Use "Re-Scan" to scan the site for new files or size changes after the site has changed
+					<?PHP echo __("Use"); ?> <a href="<?PHP echo admin_url("admin.php?page=fewster-settings"); ?>"><?PHP echo __("Settings"); ?></a> <?PHP echo __("to configure Fewster"); ?>
 				</p>
 				<p>
-					Use "Scan for IP" to scan the site for files with the poorly IP Address	
+					<?PHP echo __("Use"); ?> <a href="<?PHP echo admin_url("admin.php?page=fewster-register"); ?>"><?PHP echo __("Register"); ?></a> <?PHP echo __("to tell Fewster about plugins and themes"); ?>
+				</p>
+				<p>
+					<?PHP echo __("Use"); ?> <a href="<?PHP echo admin_url("admin.php?page=fewster-update-core"); ?>"><?PHP echo __("Update Core"); ?></a> <?PHP echo __("to update all of the core"); ?>
+				</p>
+				<p>
+					<?PHP echo __("Use"); ?> <a href="<?PHP echo admin_url("admin.php?page=fewster-integrity-core"); ?>"><?PHP echo __("Core Integrity"); ?></a> <?PHP echo __("to check core code for anything odd"); ?>
+				</p>
+				<p>
+					<?PHP echo __("Use"); ?> <a href="<?PHP echo admin_url("admin.php?page=fewster-integrity-plugins"); ?>"><?PHP echo __("Plugin and Theme Integrity"); ?></a> <?PHP echo __("to check plugins and theme code for anything odd"); ?>
+				</p>
+				<p>
+					<?PHP echo __("Use"); ?> <a href="<?PHP echo admin_url("admin.php?page=fewster-integrity-plugins"); ?>"><?PHP echo __("Plugin and Theme Integrity"); ?></a> <?PHP echo __("to check plugins and theme code for anything odd"); ?>
+				</p>
+				<p>
+					<?PHP echo __("Use"); ?> <a href="<?PHP echo admin_url("admin.php?page=fewster-manage-whitelist"); ?>"><?PHP echo __("Manage Whitelist"); ?></a> <?PHP echo __("to check files you've whitelisted"); ?>
 				</p>
 			<?PHP
+			
 		}	
 		
 		function activation(){
@@ -103,14 +119,105 @@
 
 		}
 		
+		function get_updates(){
+			
+			require_once(dirname(__FILE__) . "/../../../wp-admin/includes/plugin.php");
+			
+			$this->updates = array();
+			
+			global $wpdb;
+			
+			$output = "";
+			
+			$base = dirname(__FILE__) . "/../../";
+
+			$dir = opendir($base);
+			while($file = readdir($dir)){
+				if($file!="."&&$file!=".."){
+					if(is_dir($base . "/" . $file)){
+						$inner_dir = opendir($base . "/" . $file);
+						while($inner_file = readdir($inner_dir)){
+							if($inner_file!="."&&$inner_file!=".."){
+								if(!is_dir($base . $file . "/" . $inner_file)){
+									$data = get_plugin_data($base . $file . "/" . $inner_file);
+									if($data['Name']!=""){
+										$result = $wpdb->get_row("select * from " . $wpdb->prefix . "fewster_site_info where path ='" . str_replace("\\","/",$base . $file . "/" . $inner_file) . "'");
+										if(!$result){
+											$path = str_replace("fewster/process/../../","",str_replace("\\","/",$base . $file));
+											array_push($this->updates, array($data['Name'], $path));
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			$plugins = get_plugins();
+			foreach($plugins as $plugin => $data){
+				$response = $wpdb->get_row( "SELECT * FROM " . $wpdb->prefix . "fewster_site_info WHERE name = '" . $data['Name'] . "' and type='plugin'" );
+				if(isset($response->version)){
+					if($data['Version']!=$response->version){
+						$path = str_replace("fewster/process//../../","",$response->path);
+						$parts = explode("/",$path);
+						array_pop($parts);
+						$path = implode("/", $parts);
+						array_push($this->updates, array($data['Name'], str_replace("//","/",$path)));
+					}
+				}
+			}
+			
+			$path = get_template_directory();
+			$parts = explode("/", $path);
+			array_pop($parts);
+			$base = implode("/", $parts);
+			
+			$dir = opendir($base);
+			while($file = readdir($dir)){
+				if($file!="."&&$file!=".."){
+					if(is_dir($base . "/" . $file)){
+						$data = wp_get_theme($file);
+						if($data['Name']!=""){
+							$result = $wpdb->get_row("select * from " . $wpdb->prefix . "fewster_site_info where path ='" . str_replace("\\","/",$base . "/" . $file) . "'");
+							if(!$result){
+								array_push($this->updates, array($data['Name'], str_replace("\\","/",$base . "/" . $file)));
+							}
+						}
+					}
+				}
+			}
+			
+			$themes = wp_get_themes();
+			foreach($themes as $theme => $data){
+				$response = $wpdb->get_row( "SELECT * FROM " . $wpdb->prefix . "fewster_site_info WHERE name = '" . $data['Name'] . "' and type='theme'" );
+				if(isset($response->version)){
+					$base = get_template_directory();
+				
+					$parts = explode("/",str_replace("\\","/",$base));
+					array_pop($parts);
+					$base = implode("/", $parts);	
+						
+					if($data['Version']!=$response->version){
+						array_push($this->updates, array($data['Name'], $response->path));
+					}
+				}
+			}
+			
+			return $this->updates;
+			
+		}
+		
+		
 		function new_scan(){
 		
 			require_once("library/fewster_scan_library.php");
+			$updates = $this->get_updates();
 			$library = new fewster_scan_library();
-			$data = $library->scan_new_cron();
+			$data = $library->scan_new_cron($updates);
 			
 			$email = "";
-
+			
 			if($data[2]!=""){
 				$email = "<h2>" . $data[0] . " files have been scanned</h2>";
 				if($data[1]!=1){
@@ -125,7 +232,7 @@
 				$last_changed = get_option("fewster_new_files_changed");
 				if($last_changed!=$data[2]){
 					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					wp_mail(get_option("fewster_email"), __("Fewster Report : " . $data[1] . " new files detected"), $email);
+					wp_mail(get_option("fewster_email"), __("Fewster Report") . " : " . $data[1] . " " . __("new files detected"), $email);
 					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
 					update_option("fewster_new_files_changed", ($data[2]));
 				}
@@ -136,8 +243,9 @@
 		function size_scan(){
 
 			require_once("library/fewster_scan_library.php");
+			$updates = $this->get_updates();
 			$library = new fewster_scan_library();
-			$data = $library->scan_size_cron();
+			$data = $library->scan_size_cron($updates);
 			
 			$email = "";
 
@@ -155,7 +263,7 @@
 				$last_changed = get_option("fewster_size_files_changed");
 				if($last_changed!=$data[4]){
 					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					wp_mail(get_option("fewster_email"), __("Fewster Report : " . $data[1] . " size changes detected"), $email);
+					wp_mail(get_option("fewster_email"), __("Fewster Report") . " : " . $data[1] . " " . __("size changes detected"), $email);
 					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
 					update_option("fewster_size_files_changed", $data[4]);
 				}
@@ -166,8 +274,9 @@
 		function time_scan(){
 			
 			require_once("library/fewster_scan_library.php");
+			$updates = $this->get_updates();
 			$library = new fewster_scan_library();
-			$data = $library->scan_time_cron();
+			$data = $library->scan_time_cron($updates);
 			$email = "";
 
 			if($data[4]!=""){
@@ -184,7 +293,7 @@
 				$last_changed = get_option("fewster_time_files_changed");
 				if($last_changed!=$data[4]){
 					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					wp_mail(get_option("fewster_email"), __("Fewster Report : " . $data[1] . " time stamp changes detected"), $email);
+					wp_mail(get_option("fewster_email"), __("Fewster Report") . " : " . $data[1] . " " . __("time stamp changes detected"), $email);
 					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
 					update_option("fewster_time_files_changed", $data[4]);
 				}
@@ -228,12 +337,12 @@
 	add_action('fewster_size_scan', array($fewster,'size_scan'));
 	add_action('fewster_time_scan', array($fewster,'time_scan'));
 		
+	require_once("settings/fewster_settings.php");
 	require_once("scan/fewster_scan.php");
 	require_once("process/fewster_register.php");
 	require_once("process/fewster_update_core.php");	
 	require_once("process/fewster_integrity.php");
 	require_once("process/fewster_plugin_integrity.php");	
-	require_once("settings/fewster_settings.php");
 	require_once("process/fewster_update_plugin.php");
 	require_once("process/fewster_update_theme.php");
 	require_once("ajax/fewster_ajax.php");
@@ -249,4 +358,5 @@
 	require_once("process/fewster_admin_notices.php");
 	require_once("process/fewster_bypass.php");
 	require_once("process/fewster_update_all.php");
+	require_once("process/fewster_update_plugin_theme_all.php");
 	require_once("process/fewster_menu.php");
