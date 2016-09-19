@@ -7,6 +7,8 @@
 			$this->scan = true;
 			$this->integrity = true;
 			$this->register = true;
+			$this->new_theme = false;
+			$this->new_plugin = false;
 			if(isset($_GET['page'])){
 				if(strpos($_GET['page'],"fewster")===FALSE){
 					add_action("admin_notices", array($this, "notices"));
@@ -55,6 +57,7 @@
 						if($data['Name']!=""){
 							$result = $wpdb->get_row("select * from " . $wpdb->prefix . "fewster_site_info where path ='" . str_replace("\\","/",$base . "/" . $file) . "'");
 							if(!$result){
+								$this->new_theme = true;
 								$this->output .= '<p>' . __("Theme") . " " . $data['Name'] . " " . __("is new") . ' <a target="_blank" href="' . admin_url("admin.php?page=fewster-update-theme&add=get&root=") . str_replace("\\","/",$base . "/" . $file) . '">' . __("Add theme") . '</a></p>';
 							}
 						}
@@ -90,6 +93,7 @@
 									if($data['Name']!=""){
 										$result = $wpdb->get_row("select * from " . $wpdb->prefix . "fewster_site_info where path ='" . str_replace("\\","/",$base . $file . "/" . $inner_file) . "'");
 										if(!$result){
+											$this->new_plugin = true;
 											$this->output .= '<p>' . __("Plugin") . " " . $data['Name'] . " " . __("is new") . ' <a target="_blank" href="' . admin_url("admin.php?page=fewster-update-plugin&add=get&root=") . str_replace("\\","/",$base . $file . "/" . $inner_file) . '">' . __("Add plugin") . '</a></p>';
 										}
 									}
@@ -99,6 +103,7 @@
 					}
 				}
 			}
+			
 		}
 		
 		function check_integrity(){
@@ -170,6 +175,7 @@
 				$response = $wpdb->get_row( "SELECT * FROM " . $wpdb->prefix . "fewster_site_info WHERE name = '" . $data['Name'] . "' and type='plugin'" );
 				if(isset($response->version)){
 					if($data['Version']!=$response->version){
+						$this->new_plugin = true;
 						$this->output .= '<p>' . __("Plugin") . " " . $data['Name'] . " " . __("has been updated") . ' <a target="_blank" href="' . admin_url("admin.php?page=fewster-update-plugin&root=") . str_replace("//","/",$response->path) . '">' . __("Run an update") . '</a></p>';
 					}
 				}
@@ -190,6 +196,7 @@
 					$base = implode("/", $parts);	
 						
 					if($data['Version']!=$response->version){
+						$this->new_plugin = true;
 						$this->output .= '<p>' . __("Theme") . " " . $data['Name'] . " " . __("has been updated") . ' <a target="_blank" href="' . admin_url("admin.php?page=fewster-update-theme&root=") . $response->path . '">' . __("Run an update") . '</a></p>';
 					}
 				}
@@ -198,7 +205,11 @@
 		}
 		
 		function email_output(){
-			return $this->output;
+			$extra = "";
+			if($this->new_theme || $this->new_plugin){
+				$extra = "<p><a target='_blank' href='" . admin_url("admin.php?page=fewster-update-plugin-theme-all") . "'>" . __("Update all plugins and themes") . "</a></p>";
+			}
+			return $this->output . $extra;
 		}
 		
 		function output(){
