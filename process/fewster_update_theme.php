@@ -45,7 +45,8 @@
 				$files = $library->update_theme($_GET['root']);
 				global $wpdb;
 				foreach($files[1] as $file){
-					$wpdb->update( 
+					
+					$result = $wpdb->update( 
 						$wpdb->prefix . 'fewster_file_info', 
 						array( 
 							'file_m_time' => filemtime($file['name']),	
@@ -62,6 +63,16 @@
 						), 
 						array( '%s' ) 
 					);
+					
+					if($result === 0){
+						 $wpdb->query( 
+							$wpdb->prepare( 
+								"INSERT INTO " . $wpdb->prefix . "fewster_file_info (file_path,file_zip,file_size,file_m_time,timestamp)
+								VALUES
+								(%s,%s,%d,%d,%d)",$file['name'], $file['zip'], $file['size'], $file['time'], time()
+							)
+						);
+					}
 				}
 				
 				$name = explode("/", $_GET['root']);
