@@ -105,7 +105,7 @@
 		
 		}
 		
-		function scan_new_cron(){
+		function scan_new_cron($paths){
 		
 			$dir = $this->get_config_path();
 			$files = array();
@@ -124,13 +124,18 @@
 				$row = $wpdb->get_row('select file_size, file_m_time from ' . $wpdb->prefix . 'fewster_file_info where file_path="' . $data['name'] . '"', OBJECT);
 				if(!$row){
 					$new++;
+					foreach($paths as $path){
+						if(strpos($data['name'],$path[1])!==FALSE){
+							$new_output .= "<p>" . __("Plugin") . " " . $path[0] . " " . __("has been updated and so the change below may be ok") . "</p>";
+						}
+					}
 					$new_output .= "<p>" . $data['name'] . " " . __("is a new file") . " " . $data['size'] . " " . __("size") . " : " . date("Y-n-j G:i:s",$data['time']) . " " . __("timestamp") . "</p>";
 				}
 			}
 			return array(count($site_files[1]),$new,$new_output,$this->counter);
 		}
 
-		function scan_size_cron(){
+		function scan_size_cron($paths){
 			$dir = $this->get_config_path();
 			$files = array();
 			$this->counter = 0;
@@ -143,6 +148,11 @@
 			$this->counter = 0;
 			$new = 0;
 			foreach($site_files[1] as $file => $data){
+				foreach($paths as $path){
+					if(strpos($data['name'],$path[1])!==FALSE){
+						$file_output .= "<p>" . __("Plugin") . " " . $path[0] . " " . __("has been updated and so the change below may be ok") . "</p>";
+					}
+				}
 				$file_output = "<p>" . __("File") . " : " . $data['name'] . "</p>";
 				$issue = false;
 				$row = $wpdb->get_row('select file_size, file_m_time from ' . $wpdb->prefix . 'fewster_file_info where file_path="' . $data['name'] . '"', OBJECT);
@@ -161,7 +171,7 @@
 			return array(count($site_files[1]),$this->counter,$new_output,$this->counter,$output);
 		}
 	
-		function scan_time_cron(){
+		function scan_time_cron($paths){
 			$dir = $this->get_config_path();
 			$files = array();
 			$this->counter = 0;
@@ -174,6 +184,11 @@
 			$this->counter = 0;
 			$new = 0;
 			foreach($site_files[1] as $file => $data){
+				foreach($paths as $path){
+					if(strpos($data['name'],$path[1])!==FALSE){
+						$file_output .= "<p>" . __("Plugin") . " " . $path[0] . " " . __("has been updated and so the change below may be ok") . "</p>";
+					}
+				}
 				$file_output = "<p>" . __("File") . " : " . $data['name'] . "</p>";
 				$issue = false;
 				$row = $wpdb->get_row('select file_size, file_m_time from ' . $wpdb->prefix . 'fewster_file_info where file_path="' . $data['name'] . '"', OBJECT);
