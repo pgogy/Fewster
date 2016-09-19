@@ -38,12 +38,14 @@
 		
 		function update(){
 			if(!isset($_GET['add'])){
+			
 				require_once(dirname(__FILE__) . "/../library/fewster_scan_library.php");
 				$library = new fewster_scan_library();
-				$files = $library->update_plugin($_GET['root']);
+				$files = $library->update_plugin(str_replace("fewster/process/../../","",$_GET['root']));
 				global $wpdb;
 				foreach($files[1] as $file){
-					$wpdb->update( 
+				
+					$result = $wpdb->update( 
 						$wpdb->prefix . 'fewster_file_info', 
 						array( 
 							'file_m_time' => filemtime($file['name']),	
@@ -60,6 +62,17 @@
 						), 
 						array( '%s' ) 
 					);
+					
+					if($result === 0){
+						 $wpdb->query( 
+							$wpdb->prepare( 
+								"INSERT INTO " . $wpdb->prefix . "fewster_file_info (file_path,file_zip,file_size,file_m_time,timestamp)
+								VALUES
+								(%s,%s,%d,%d,%d)",$file['name'], $file['zip'], $file['size'], $file['time'], time()
+							)
+						);
+					}
+					
 				}
 				
 				$data = get_plugin_data($_GET['root']);
