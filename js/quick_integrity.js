@@ -1,4 +1,8 @@
-function fewster_quick_integrity_data(name, file){
+function fewster_quick_integrity_data(type, name, file){
+
+	console.log(type);
+	console.log(name);
+	console.log(file);
 
 	var data = {
 		action : "fewster_quick_integrity_data",
@@ -10,12 +14,16 @@ function fewster_quick_integrity_data(name, file){
 		.css("display","block");
 		
 	jQuery.post(fewster_quick_integrity.ajaxURL, data, function(response) {
+	
+			console.log("here");
+			console.log(response);
+	
 			return_data = JSON.parse(response);
 			counter = 0;
 			files = 0;
 			for(url in return_data){
 				var data = {
-					action : "fewster_quick_integrity_file",
+					action : "fewster_quick_integrity_file_" + type,
 					fewster_file : return_data[url],
 					nonce : fewster_quick_integrity.nonce
 				};
@@ -24,7 +32,7 @@ function fewster_quick_integrity_data(name, file){
 						jQuery("#fewster_integrity_update_" + name)
 							.children()
 							.last()
-							.html((files + 1) + " of " + return_data.length + " files to be checked");
+							.html((files + 1) + " of " + return_data.length + " files have been checked");
 						files++;
 						if(response == 1){
 							counter++;
