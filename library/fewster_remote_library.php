@@ -2,36 +2,6 @@
 	
 	class fewster_remote_library{
 	
-		function get_plugin_file(){
-			
-			require_once("fewster_library.php");
-			$library = new fewster_library;
-			
-			$dir = wp_upload_dir();
-			$plugins_root = str_replace("\\","/", str_replace("uploads","plugins",$dir['basedir']));
-			$short_path = str_replace($plugins_root . "/","",$_POST['fewster_file']);
-			
-			$plugins = get_plugins();
-			$parts = explode("/",$short_path);
-			$plugin_name = $parts[0];
-			
-			foreach($plugins as $plugin => $data){
-				if(strpos($plugin, $plugin_name . "/")!==FALSE){
-					$version = $data['Version'];
-					
-					$content = $library->get_url("https://plugins.svn.wordpress.org/" . $plugin_name . "/tags/" . $version . str_replace($plugins_root . "/" . $plugin_name,"",$_POST['fewster_file']));
-					if($content[0]['http_code']!=200){
-						$content = $library->get_url("https://plugins.svn.wordpress.org/" . $plugin_name . "/trunk" . str_replace($plugins_root . "/" . $plugin_name,"",$_POST['fewster_file']));
-						if($content[0]['http_code']!=200){
-							return false;
-						}
-					}
-					return $content;
-					
-				}
-			}
-		}
-	
 		function get_plugin(){
 			
 			require_once("fewster_library.php");
