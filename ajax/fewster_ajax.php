@@ -8,17 +8,59 @@
 			add_action("wp_ajax_fewster_direct_addons", array($this, "addons"));
 			add_action("wp_ajax_fewster_integrity_done", array($this, "done"));
 			add_action("wp_ajax_fewster_quick_integrity_data", array($this, "quick_integrity"));
-			add_action("wp_ajax_fewster_quick_integrity_file", array($this, "quick_integrity_file"));
+			add_action("wp_ajax_fewster_quick_integrity_file_plugin", array($this, "quick_integrity_file_plugin"));
+			add_action("wp_ajax_fewster_quick_integrity_file_theme", array($this, "quick_integrity_file_theme"));
 		}
 		
-		function quick_integrity_file(){
+		function quick_integrity_file_theme(){
 		
 			if(wp_verify_nonce($_POST['nonce'],"fewster_quick_integrity")){
 				
 				require_once(dirname(__FILE__) . "/../library/fewster_remote_library.php");
 				$remote_library = new fewster_remote_library;
 				
-				$file = $remote_library->get_plugin_file();
+				$file = $remote_library->get_theme();
+				
+				if($file){
+					$remote_file = $file[1];
+				}else{
+					echo 2;
+					die();
+				}
+				
+				if($remote_file){
+					
+					$local_file = file_get_contents($_POST['fewster_file']);
+					
+					if(strlen($local_file)!=strlen($remote_file)){
+						echo 0;
+					}else{
+						for($x=(strlen($local_file)-1);$x!=0;$x--){
+							if($remote_file[$x]!=$local_file[$x]){
+								echo 0;
+								break;
+							}
+						}
+						echo 1;
+					}
+					
+				}else{
+					echo 3;
+				}
+				
+				die();
+				
+			}	
+		}
+		
+		function quick_integrity_file_plugin(){
+		
+			if(wp_verify_nonce($_POST['nonce'],"fewster_quick_integrity")){
+				
+				require_once(dirname(__FILE__) . "/../library/fewster_remote_library.php");
+				$remote_library = new fewster_remote_library;
+				
+				$file = $remote_library->get_plugin();
 				
 				if($file){
 					$remote_file = $file[1];
