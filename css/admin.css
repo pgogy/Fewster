@@ -100,3 +100,14 @@
 	display: none;
 	padding:10px;
 }
+
+.fewster_themes{
+	margin-left:180px;
+	position: relative;
+    top: -50px;
+}
+
+.fewster_integrity_update h4,
+.fewster_integrity_fail h4{
+	color:#000;
+}
