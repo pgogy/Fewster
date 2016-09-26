@@ -358,6 +358,9 @@
 	require_once("process/fewster_bypass.php");
 	require_once("process/fewster_update_all.php");
 	require_once("process/fewster_update_plugin_theme_all.php");
-	require_once("process/fewster_menu.php");
 	require_once("process/fewster_plugin_list.php");
+	require_once("process/fewster_theme_list.php");
 	require_once("process/fewster_plugin_integrity_check.php");
+	require_once("process/fewster_theme_integrity_check.php");
+	require_once("process/fewster_menu.php");
+	
