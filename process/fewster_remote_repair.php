@@ -34,27 +34,23 @@
 					global $wpdb;
 					$row = $wpdb->get_row('select id, file_path, file_zip from ' . $wpdb->prefix . 'fewster_file_info where file_path="' . $_POST['fewster_file'] . '"', OBJECT);
 					
-					$file = "fuck off";
+					$file = false;
 					
 					if(strpos($_POST['fewster_file'],"wp-content/plugins")!==FALSE){
 						$file = $remote_library->get_plugin();
-					}
-					if(strpos($_POST['fewster_file'],"wp-content/themes")!==FALSE){
+					}else if(strpos($_POST['fewster_file'],"wp-content/themes")!==FALSE){
 						$file = $remote_library->get_theme();
-					}
-					if(strpos($_POST['fewster_file'],"wp-includes/")!==FALSE){
+					}else if(strpos($_POST['fewster_file'],"wp-includes/")!==FALSE){
+						$file = $remote_library->get_core();
+					}else if(strpos($_POST['fewster_file'],"wp-admin/")!==FALSE){
+						$file = $remote_library->get_core();
+					}else if(strpos($_POST['fewster_file'],"/")!==FALSE){
 						$file = $remote_library->get_core();
 					}
-					if(strpos($_POST['fewster_file'],"wp-admin/")!==FALSE){
-						$file = $remote_library->get_core();
-					}
-					if(strpos($_POST['fewster_file'],"/")!==FALSE){
-						$file = $remote_library->get_core();
-					}
-					
+
 					if($file){
 					
-						file_put_contents($_POST['fewster_file'],$file);
+						file_put_contents($_POST['fewster_file'],$file[1]);
 						if(!isset($_GET['no_update'])){
 							$wpdb->update( 
 								$wpdb->prefix . 'fewster_file_info', 
