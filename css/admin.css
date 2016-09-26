@@ -1,4 +1,4 @@
-.fewster_file,
+*.fewster_file,
 .fewster_new{
 	border-top: 1px solid #000;
 	background: #fff;
@@ -77,4 +77,26 @@
 	margin: 5px 0px;
 	display: none;
 	padding: 5px;
+}
+
+.fewster_integrity_options{
+	color:#000;
+}
+
+.fewster_integrity_update{
+	border:1px solid #000;
+	padding:10px;
+	display: none;
+}
+
+.fewster_integrity_success{
+	background:#afa;
+	display: none;
+	padding:10px;
+}
+
+.fewster_integrity_fail{
+	background:#faa;
+	display: none;
+	padding:10px;
 }
