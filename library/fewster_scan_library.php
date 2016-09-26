@@ -80,7 +80,18 @@
 			return $site_files;
 		
 		}
-	
+
+		function single_plugin_files_list($dir){
+		
+			$files = array();
+			$this->counter = 0;
+			
+			$site_files = $this->recurse($dir, array($this, "get_data_basic_plugins"), $files);
+			
+			return $site_files[1];
+		
+		}
+
 		function plugin_files_list(){
 		
 			$dir = $this->get_config_path();
