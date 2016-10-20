@@ -40,7 +40,7 @@
 		
 		function update(){
 			if(!isset($_GET['add'])){
-				require_once("../library/fewster_scan_library.php");
+				require_once(dirname(__FILE__) . "/../library/fewster_scan_library.php");
 				$library = new fewster_scan_library();
 				$files = $library->update_theme($_GET['root']);
 				global $wpdb;

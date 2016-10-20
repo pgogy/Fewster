@@ -80,18 +80,35 @@
 				echo "<h2>" . __("Fewster : updating plugin") . " " . $data['Name'] . "</h2>";
 				echo "<p>" . $files[0] . " " . __("files updated") . "</p>";
 				global $wp_version;
-				
-				$wpdb->update( 
+
+				$update = $wpdb->update( 
 					$wpdb->prefix . 'fewster_site_info', 
 					array( 
 						'version' => $data['Version'],
 					), 
-					array( 'path' => $_GET['root'] ),
+					array( 'path' => str_replace("process/","process//",urldecode($_GET['root'])) ),
 					array( 
 						'%s',
 					), 
 					array( '%s' ) 
 				);
+
+				if($update!=1){
+
+					$updatetwo = $wpdb->update( 
+						$wpdb->prefix . 'fewster_site_info', 
+						array( 
+							'version' => $data['Version'],
+						), 
+						array( 'path' => urldecode($_GET['root']) ),
+						array( 
+							'%s',
+						), 
+						array( '%s' ) 
+					);
+
+				}
+
 			}else{
 				$this->add();
 			}
