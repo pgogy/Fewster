@@ -217,6 +217,57 @@
 			return array(count($site_files[1]),$this->counter,$new_output,$this->counter,$output);
 		}
 	
+		function scan_integrity(){
+		
+			echo "<h1>" . __("Fewster Scan new and changed files") . "</h2>";
+		
+			$dir = $this->get_config_path();
+			$files = array();
+			$this->counter = 0;
+			
+			global $wpdb;
+			
+			$db_files = $wpdb->get_results("select * from " . $wpdb->prefix . "fewster_file_info");
+			
+			$site_files = $this->recurse($dir, array($this, "get_data_compare"), $files);
+			$output = "";
+			$new_output = "";
+			$this->counter = 0;
+			$new = 0;
+		
+			echo "<div id='fewster_importProgress'><p><strong>" . __("Scan Progress") . " <span id='importTotal'></span></strong></p><div id='importProgressBar'></div></div>";
+			echo '<form id="fewster_integrity_form" action="javascript:function connect(){return false;};">';
+			echo "<input type='submit' id='fewster_integrity' value='" . __("Run Integrity Check") . "' />";	
+			echo "<p id='fewster_select_options'><span><a href='javascript:fewster_select_all()'>" . __("Select All") . "</a></span> <span><a href='javascript:fewster_unselect_all()'>" . __("Unselect All") . "</a></span></p>"; 
+			echo "<ul>";
+
+			foreach($site_files[1] as $file => $data){
+
+				$row = $wpdb->get_row('select file_size, file_m_time from ' . $wpdb->prefix . 'fewster_file_info where file_path="' . $data['name'] . '"', OBJECT);
+
+				if($row){
+					if($row->file_size != $data['size']){
+						$issue = true;
+					}
+					if($row->file_m_time != $data['time']){
+						$issue = true;
+					}
+				}else{
+					$issue = true;
+				}
+
+				if($issue){
+					echo "<li>";
+					echo "<input repair_url='" . admin_url("admin.php?page=fewster-r-r&file=" . $data['name']) . "' id='fewster_file_" . $this->counter . "'  type='checkbox' checked file='" . $data['name'] . "'>" . $data['name'] . "<span class='fewster_integrity_response' id='fewster_file_" . $this->counter++ . "_status' ></span></li>";
+				}
+			}
+			echo "</ul>";
+			echo "</form>";
+		
+			echo "<h3>" . count($site_files[1]) . "  " . __('Files scanned') . "</h3>";
+								
+		}
+
 		function scan(){
 		
 			echo "<h1>" . __("Fewster Scan") . "</h2>";
