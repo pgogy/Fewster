@@ -111,7 +111,7 @@ function fewster_integrity(items, orig_length, problems, ajax_action){
 
 jQuery(document).ready(
 	function(){
-	
+
 		jQuery("form#fewster_integrity_form #fewster_integrity")
 			.on("click", 
 					function(){
