@@ -67,8 +67,8 @@
 		}
 
 		function ran_scan(){
-
-			$this->output .= '<p><strong>' . __("If you've ran a scan") . '</strong> : <a href="javascript:fewster_accept_scan()">' . __("click here to suppress these messages") . '</p>';
+			$this->output .= '<p><strong>' . __("If you've ran a scan") . '</strong>';
+			$this->output .= ' : <a href=\'javascript:fewster_accept_scan()\'>' . __("click here to suppress these messages") . '</a></p>';		
 		}
 		
 		function new_plugins(){
