@@ -72,9 +72,9 @@
 		}	
 		
 		function activation(){
-			wp_schedule_event(time(), 'every60sec', 'fewster_new_scan');
-			wp_schedule_event(time(), 'every60sec', 'fewster_size_scan');
-			wp_schedule_event(time(), 'every60sec', 'fewster_time_scan');
+			wp_schedule_event(time(), 'eighthours', 'fewster_new_scan');
+			wp_schedule_event(time(), 'eighthours', 'fewster_size_scan');
+			wp_schedule_event(time(), 'eighthours', 'fewster_time_scan');
 		}
 		
 		function database_activation(){
@@ -216,7 +216,7 @@
 			$data = $library->scan_new_cron($updates);
 			
 			$email = "";
-			
+
 			if($data[2]!=""){
 				$email = "<h2>" . $data[0] . " files have been scanned</h2>";
 				if($data[1]!=1){
@@ -228,10 +228,15 @@
 				$email .= $this->site_check_overall();
 				$email .= "<h2>" . __("Details") . "</h2>";
 				$email .= $data[2];
+				$email .= "<p><a href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check new or changed files") . "</a></p>";
 				$last_changed = get_option("fewster_new_files_changed");
+				
 				if($last_changed!=$data[2]){
 					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					wp_mail(get_option("fewster_email"), __("Fewster Report") . " : " . $data[1] . " " . __("new files detected"), $email);
+					$address = explode(";", get_option("fewster_email"));
+					foreach($address as $recipient){
+						wp_mail($recipient, __("Fewster Report") . " : " . $data[1] . " " . __("new files detected"), $email);
+					}
 					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
 					update_option("fewster_new_files_changed", ($data[2]));
 				}
@@ -259,10 +264,14 @@
 				$email .= $this->site_check_overall();
 				$email .= "<h2>" . __("Details") . "</h2>";
 				$email .= $data[4];
+				$email .= "<p><a href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check new or changed files") . "</a></p>";
 				$last_changed = get_option("fewster_size_files_changed");
 				if($last_changed!=$data[4]){
 					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					wp_mail(get_option("fewster_email"), __("Fewster Report") . " : " . $data[1] . " " . __("size changes detected"), $email);
+					$address = explode(";", get_option("fewster_email"));
+					foreach($address as $recipient){
+						wp_mail($recipient, __("Fewster Report") . " : " . $data[1] . " " . __("new files detected"), $email);
+					}
 					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
 					update_option("fewster_size_files_changed", $data[4]);
 				}
@@ -289,10 +298,14 @@
 				$email .= $this->site_check_overall();
 				$email .= "<h2>" . __("Details") . "</h2>";
 				$email .= $data[4];
+				$email .= "<p><a href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check new or changed files") . "</a></p>";
 				$last_changed = get_option("fewster_time_files_changed");
 				if($last_changed!=$data[4]){
 					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					wp_mail(get_option("fewster_email"), __("Fewster Report") . " : " . $data[1] . " " . __("time stamp changes detected"), $email);
+					$address = explode(";", get_option("fewster_email"));
+					foreach($address as $recipient){
+						wp_mail($recipient, __("Fewster Report") . " : " . $data[1] . " " . __("new files detected"), $email);
+					}
 					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
 					update_option("fewster_time_files_changed", $data[4]);
 				}
@@ -363,4 +376,4 @@
 	require_once("process/fewster_plugin_integrity_check.php");
 	require_once("process/fewster_theme_integrity_check.php");
 	require_once("process/fewster_menu.php");
-	
+	require_once("scan/fewster-scan-integrity.php");	
