@@ -19,6 +19,11 @@
 			if($library->counter!=0){
 				?><form action="<?PHP echo admin_url("admin.php?page=fewster-update-all"); ?>" method="POST">
 				<input type="submit" class="button-primary" value="<?php _e('Update file information and accept above changes') ?>" />
+				</form>
+				<br />
+				<br />
+				<form action="<?PHP echo admin_url("admin.php?page=fewster-scan-integrity-change"); ?>" method="POST">
+				<input type="submit" class="button-primary" value="<?php _e('Integrity check all changed files') ?>" />
 				</form><?PHP
 			}
 		}
