@@ -17,6 +17,7 @@
 	font-size:20px;
 }
 
+.fewster-anti-bad_page_fewster-scan-integrity-change #wpbody-content li,
 .fewster-anti-bad_page_fewster-integrity-core #wpbody-content li,
 .fewster-anti-bad_page_fewster-integrity-plugins #wpbody-content li{
 	border:1px solid #000;
