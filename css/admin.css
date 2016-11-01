@@ -112,3 +112,41 @@
 .fewster_integrity_fail h4{
 	color:#000;
 }
+
+.fewster_notification_table{
+	margin-top: 30px;
+}
+
+.fewster_header_row,
+.fewster_row{
+	background:#fefefe;
+	width: 100%;
+	clear: both;
+}
+
+.fewster_notification_table .fewster_header_row{
+	font-weight:bold;
+	height: 30px;
+}
+
+.fewster_header_row div,
+.fewster_row div{
+	display:inline-block;
+	width:24%;
+	vertical-align:top;
+	text-align: center;
+	border-left:1px solid #333;
+	border-bottom:1px solid #111;
+	padding: 5px;
+	word-wrap: break-word;
+}
+
+.fewster_row div{
+	height:60px;
+}
+
+.fewster_header_row div:first-child,
+.fewster_row div:first-child{
+	text-align: left;
+	border-left:none;
+}
