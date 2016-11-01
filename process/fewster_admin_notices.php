@@ -207,7 +207,7 @@
 		function email_output(){
 			$extra = "";
 			if($this->new_theme || $this->new_plugin){
-				$extra = "<p><a target='_blank' href='" . admin_url("admin.php?page=fewster-update-plugin-theme-all") . "'>" . __("Update all plugins and themes") . "</a></p>";
+				$extra = "<p><a style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' target='_blank' href='" . admin_url("admin.php?page=fewster-update-plugin-theme-all") . "'>" . __("Update all plugins and themes") . "</a></p>";
 			}
 			return $this->output . $extra;
 		}
