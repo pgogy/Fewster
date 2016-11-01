@@ -217,6 +217,108 @@
 			return array(count($site_files[1]),$this->counter,$new_output,$this->counter,$output);
 		}
 	
+		function scan_notify_new(){
+		
+			$dir = $this->get_config_path();
+			$files = array();
+			$this->counter = 0;
+			
+			global $wpdb;
+			
+			$db_files = $wpdb->get_results("select * from " . $wpdb->prefix . "fewster_file_info");
+			
+			$site_files = $this->recurse($dir, array($this, "get_data_compare"), $files);
+		
+			foreach($site_files[1] as $file => $data){
+
+				$row = $wpdb->get_row('select file_size, file_m_time from ' . $wpdb->prefix . 'fewster_file_info where file_path="' . $data['name'] . '"', OBJECT);
+
+				if(!$row){
+					$notification_row = $wpdb->get_row('select file_path from ' . $wpdb->prefix . 'fewster_notifications where file_change_type="new" and file_path="' . $data['name'] . '" and notification_sent = 1 ', OBJECT);
+						
+					if($notification_row==""){
+						$query = $wpdb->prepare("INSERT INTO " . $wpdb->prefix . "fewster_notifications (file_path,file_change_type,timestamp,notification_sent)VALUES(%s,%s,%d,%d)",$data['name'], "new", time(), 0);
+						$response = $wpdb->query($query);
+					}
+					
+				}
+			
+			}
+			
+			return $site_files;
+			
+		}
+
+		function scan_notify_time(){
+		
+			$dir = $this->get_config_path();
+			$files = array();
+			$this->counter = 0;
+			
+			global $wpdb;
+			
+			$db_files = $wpdb->get_results("select * from " . $wpdb->prefix . "fewster_file_info");
+			
+			$site_files = $this->recurse($dir, array($this, "get_data_compare"), $files);
+		
+			foreach($site_files[1] as $file => $data){
+
+				$row = $wpdb->get_row('select file_size, file_m_time from ' . $wpdb->prefix . 'fewster_file_info where file_path="' . $data['name'] . '"', OBJECT);
+
+				if($row){
+					if($row->file_m_time != $data['time']){
+						
+						$notification_row = $wpdb->get_row('select file_path from ' . $wpdb->prefix . 'fewster_notifications where file_change_type="time" and file_path="' . $data['name'] . '" and file_m_time = ' . $data['time'] . ' and notification_sent =1 ', OBJECT);
+						
+						if($notification_row==""){
+							$query = $wpdb->prepare("INSERT INTO " . $wpdb->prefix . "fewster_notifications (file_path,file_change_type,file_m_time,file_m_time_prev,timestamp,notification_sent)VALUES(%s,%s,%d,%d,%d,%d)",$data['name'], "time", $data['time'], (integer)$row->file_m_time, time(), 0);
+							$response = $wpdb->query($query);
+						}
+						
+					}
+				}
+			
+			}
+			
+			return $site_files;
+			
+		}
+
+		function scan_notify_size(){
+		
+			$dir = $this->get_config_path();
+			$files = array();
+			$this->counter = 0;
+			
+			global $wpdb;
+			
+			$db_files = $wpdb->get_results("select * from " . $wpdb->prefix . "fewster_file_info");
+			
+			$site_files = $this->recurse($dir, array($this, "get_data_compare"), $files);
+		
+			foreach($site_files[1] as $file => $data){
+
+				$row = $wpdb->get_row('select file_size, file_m_time from ' . $wpdb->prefix . 'fewster_file_info where file_path="' . $data['name'] . '"', OBJECT);
+
+				if($row){
+					if($row->file_size != $data['size']){
+						
+						$notification_row = $wpdb->get_row('select file_path from ' . $wpdb->prefix . 'fewster_notifications where file_change_type="size" and file_path="' . $data['name'] . '" and file_size = ' . $data['size'] . ' and notification_sent=1 ', OBJECT);
+						
+						if($notification_row==""){
+							$query = $wpdb->prepare("INSERT INTO " . $wpdb->prefix . "fewster_notifications (file_path,file_change_type,file_size,file_size_prev,timestamp,notification_sent)VALUES(%s,%s,%d,%d,%d,%d)",$data['name'], "size", $data['size'], (integer)$row->file_size, time(), 0);
+							$response = $wpdb->query($query);
+						}
+						
+					}
+				}
+			
+			}
+			
+			return $site_files;
+			
+		}
+	
 		function scan_integrity(){
 		
 			echo "<h1>" . __("Fewster Scan new and changed files") . "</h2>";

@@ -111,9 +111,50 @@
 					);";
 				
 				@dbDelta($sql);
+
+				$table_name = $wpdb->prefix . "fewster_notifications";
+
+				$sql = "CREATE TABLE " . $table_name . " (
+					  id bigint(20) NOT NULL AUTO_INCREMENT,
+					  file_path text,
+					  file_change_type text,
+					  file_size bigint(20),
+					  file_size_prev bigint(20),
+					  file_m_time bigint(20),
+					  file_m_time_prev bigint(20),
+					  timestamp bigint(20),
+					  notification bigint(20),
+					  UNIQUE KEY id(id)
+					);";
+				
+				@dbDelta($sql);
+
 				
 				add_option("fewster_init", 1);
 				
+			}
+			
+			if(get_option("fewster_init")==1){
+			
+				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+			
+				$table_name = $wpdb->prefix . "fewster_notifications";
+
+				$sql = "CREATE TABLE " . $table_name . " (
+					  id bigint(20) NOT NULL AUTO_INCREMENT,
+					  file_path text,
+					  file_change_type text,
+					  file_size bigint(20),
+					  file_size_prev bigint(20),
+					  file_m_time bigint(20),
+					  file_m_time_prev bigint(20),
+					  timestamp bigint(20),
+					  notification_sent bigint(20),
+					  UNIQUE KEY id(id)
+					);";
+					
+				@dbDelta($sql);
+			
 			}
 
 		}
@@ -207,108 +248,429 @@
 			
 		}
 		
-		
-		function new_scan(){
-		
-			require_once("library/fewster_scan_library.php");
-			$updates = $this->get_updates();
-			$library = new fewster_scan_library();
-			$data = $library->scan_new_cron($updates);
-			
-			$email = "";
-
-			if($data[2]!=""){
-				$email = "<h2>" . $data[0] . " files have been scanned</h2>";
-				if($data[1]!=1){
-					$email .= "<p>" . $data[1] . " new files exist</p>";
-				}else{
-					$email .= "<p>" . $data[1] . " new file exists</p>";
-				}
-				$email .= "<h2>" . __("Major changes") . "</h2>";
-				$email .= $this->site_check_overall();
-				$email .= "<h2>" . __("Details") . "</h2>";
-				$email .= $data[2];
-				$email .= "<p><a href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check new or changed files") . "</a></p>";
-				$last_changed = get_option("fewster_new_files_changed");
-				
-				if($last_changed!=$data[2]){
-					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					$address = explode(";", get_option("fewster_email"));
-					foreach($address as $recipient){
-						wp_mail($recipient, __("Fewster Report") . " : " . $data[1] . " " . __("new files detected"), $email);
-					}
-					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					update_option("fewster_new_files_changed", ($data[2]));
-				}
-			}
-				
-		}
-		
 		function size_scan(){
-
+		
+			global $wpdb;
 			require_once("library/fewster_scan_library.php");
 			$updates = $this->get_updates();
-			$library = new fewster_scan_library();
-			$data = $library->scan_size_cron($updates);
 			
-			$email = "";
+			$library = new fewster_scan_library();
+			$root = $library->get_config_path();
+			$data = $library->scan_notify_size();
 
-			if($data[4]!=""){
-				$email = "<h2>" . $data[0] . " files have been scanned</h2>";
-				if($data[1]!=1){
-					$email .= "<p>" . $data[1] . " file size changes</p>";
+			$new_files = $wpdb->get_results('select * from ' . $wpdb->prefix . 'fewster_notifications where file_change_type="size" and notification_sent = 0 ', OBJECT);
+			
+			$list = $new_files;	
+		
+			$new = count($new_files);
+			$total = count($new_files);
+
+			if($new != 0){
+				$email = "";
+				$main = "";
+				$major = "";
+				$core = "";
+				$p_and_t = "";
+				
+				$main = "<h2>" . $data[0] . " files have been scanned</h2>";
+				if($new!=1){
+					$main .= "<p>" . $new . " file size changes have happened";
 				}else{
-					$email .= "<p>" . $data[1] . " file size changed</p>";
+					$main .= "<p>" . $new . " file size changes have happened";
 				}
-				$email .= "<h2>" . __("Major changes") . "</h2>";
-				$email .= $this->site_check_overall();
-				$email .= "<h2>" . __("Details") . "</h2>";
-				$email .= $data[4];
-				$email .= "<p><a href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check new or changed files") . "</a></p>";
-				$last_changed = get_option("fewster_size_files_changed");
-				if($last_changed!=$data[4]){
-					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					$address = explode(";", get_option("fewster_email"));
-					foreach($address as $recipient){
-						wp_mail($recipient, __("Fewster Report") . " : " . $data[1] . " " . __("new files detected"), $email);
+				
+				$main .= "<span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check these files") . "</a></span></p>";
+				
+				$changes = $this->site_check_overall();
+				if($changes!=""){
+					$major .= "<h2>" . __("Major changes") . "</h2>";
+					$major .= $changes;
+				}
+				
+				$changes = array();
+				
+				foreach($new_files as $index => $file){
+					if(strpos($file->file_path,"wp-content")!==FALSE){
+						foreach($updates as $update){
+							if(strpos($file->file_path,$update[1])!==FALSE){
+								if(!isset($changes[$update[0]])){
+									$changes[$update[0]] = array();
+								}
+								array_push($changes[$update[0]], $file);
+								unset($new_files[$index]);
+							}
+						}
+					} else if(strpos($file->file_path,"wp-includes")!==FALSE){
+						if(!isset($changes[__("Core")])){
+							$changes[__("Core")] = array();
+						}
+						array_push($changes[__("Core")], $file);
+						unset($new_files[$index]);
+					} else if(strpos($file->file_path,"wp-admin")!==FALSE){
+						if(!isset($changes[__("Core")])){
+							$changes[__("Core")] = array();
+						}
+						array_push($changes[__("Core")], $file);
+						unset($new_files[$index]);
+					} else {
+						$clean = str_replace("\\","/",str_replace($root,"",$file->file_path));
+						if(strpos($clean,"/")===FALSE){ 
+							if(!isset($changes[__("Core")])){
+								$changes[__("Core")] = array();
+							}
+							array_push($changes[__("Core")], $file);
+							unset($new_files[$index]);
+						}
 					}
-					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					update_option("fewster_size_files_changed", $data[4]);
 				}
+				
+				if(isset($changes[__("Core")])){
+					$core .= "<h3>" . __("Core changes") . "</h3>";
+					$core .= "<p>" . count($changes[__("Core")]) . " " . __("file size changes to files have happened in WordPress core");
+					global $wp_version, $wpdb;
+					$response = $wpdb->get_row( "SELECT * FROM " . $wpdb->prefix . "fewster_site_info WHERE type='core'" );
+					if(isset($response->version)){
+						if($wp_version!=$response->version){
+							$core .= '<p>' . __("WordPress has been updated, so this is to be expected") . ' <a style="background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;" target="_blank" href="' . admin_url("admin.php?page=fewster-update-core") . '">' . __("Run an update") . '</a></p>';
+						}
+					}
+				}
+				unset($changes[__("Core")]);
+				
+				if(count($changes)!=0){
+					$p_and_t .= "<h3>" . __("Theme and plugin changes") . "</h3>";
+					foreach($changes as $index => $data){
+						
+						$p_and_t .= "<h4>" . $index . "</h4>";
+						if(count($data)==1){
+							$p_and_t .= "<p>" . count($data) . " " . __("file size changes to files has happened in") . " " . $index;
+						}else{
+							$p_and_t .= "<p>" . count($data) . " " . __("file size changes to files has happened in") . " " . $index;
+						}
+						$p_and_t .= '<p>' . $index . __(" has been updated, so this is to be expected. You should run an update however.") . '</p>';
+					}					
+				}
+				
+				if(count($new_files)!=0){
+					$new = "<h3>" . __("Important changes") . "</h3>";
+					$new .= "<p>" . __("These files with file size changes are outside updated areas and so are potentially dangerous. You should check these files") . "</p>";
+					foreach($new_files as $file){
+						$new .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";		
+					}
+				}
+				
+				$email = "<table>";
+				$email .= "<tr>";
+				$email .= "<td>" . $main . "</td>";
+				$email .= "</tr>";
+				$email .= "<tr>";
+				$email .= "<td width='50%'>" . $new . $core . $p_and_t . "</td>";
+				$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
+				$email .= "</tr>";
+				$email .= "<tr>";
+				$email .= "<td><h3>" . __("All changes") . "</h3>";
+				foreach($list as $file){
+					$email .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";	
+				}
+				$email .= "</td>";
+				$email .= "</tr>";
+				$email .= "</table>";
+				
+				add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+				add_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+				$address = explode(";", get_option("fewster_email"));
+				foreach($address as $recipient){
+					wp_mail($recipient, __("Fewster Report for") . " " . get_bloginfo("name") . " : " . $total . " " . __("file size changes detected"), $email);
+				}
+				remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+				remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+				
+				$wpdb->query("Update " . $wpdb->prefix . "fewster_notifications set notification_sent = 1 where file_change_type='size' and notification_sent = 0");
+
+				
 			}
 				
 		}
 		
 		function time_scan(){
-			
+		
+			global $wpdb;
 			require_once("library/fewster_scan_library.php");
 			$updates = $this->get_updates();
+			
 			$library = new fewster_scan_library();
-			$data = $library->scan_time_cron($updates);
-			$email = "";
+			$root = $library->get_config_path();
+			$data = $library->scan_notify_time();
 
-			if($data[4]!=""){
-				$email = "<h2>" . $data[0] . " files have been scanned</h2>";
-				if($data[1]!=1){
-					$email .= "<p>" . $data[1] . " time stamps changed</p>";
+			$new_files = $wpdb->get_results('select * from ' . $wpdb->prefix . 'fewster_notifications where file_change_type="time" and notification_sent =0 ', OBJECT);
+			$list = $new_files;
+		
+			$new = count($new_files);
+			$total = count($new_files);
+
+			if($new != 0){
+				$email = "";
+				$main = "";
+				$major = "";
+				$core = "";
+				$p_and_t = "";
+				
+				$main = "<h2>" . $data[0] . " files have been scanned</h2>";
+				if($new!=1){
+					$main .= "<p>" . $new . " time stamp changes have happened";
 				}else{
-					$email .= "<p>" . $data[1] . " time stamp changed</p>";
+					$main .= "<p>" . $new . " time stamp changes have happened";
 				}
-				$email .= "<h2>" . __("Major changes") . "</h2>";
-				$email .= $this->site_check_overall();
-				$email .= "<h2>" . __("Details") . "</h2>";
-				$email .= $data[4];
-				$email .= "<p><a href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check new or changed files") . "</a></p>";
-				$last_changed = get_option("fewster_time_files_changed");
-				if($last_changed!=$data[4]){
-					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					$address = explode(";", get_option("fewster_email"));
-					foreach($address as $recipient){
-						wp_mail($recipient, __("Fewster Report") . " : " . $data[1] . " " . __("new files detected"), $email);
+				
+				$main .= "<span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check new files") . "</a></span></p>";
+				
+				$changes = $this->site_check_overall();
+				if($changes!=""){
+					$major .= "<h2>" . __("Major changes") . "</h2>";
+					$major .= $changes;
+				}
+				
+				$changes = array();
+				
+				foreach($new_files as $index => $file){
+					if(strpos($file->file_path,"wp-content")!==FALSE){
+						foreach($updates as $update){
+							if(strpos($file->file_path,$update[1])!==FALSE){
+								if(!isset($changes[$update[0]])){
+									$changes[$update[0]] = array();
+								}
+								array_push($changes[$update[0]], $file);
+								unset($new_files[$index]);
+							}
+						}
+					} else if(strpos($file->file_path,"wp-includes")!==FALSE){
+						if(!isset($changes[__("Core")])){
+							$changes[__("Core")] = array();
+						}
+						array_push($changes[__("Core")], $file);
+						unset($new_files[$index]);
+					} else if(strpos($file->file_path,"wp-admin")!==FALSE){
+						if(!isset($changes[__("Core")])){
+							$changes[__("Core")] = array();
+						}
+						array_push($changes[__("Core")], $file);
+						unset($new_files[$index]);
+					} else {
+						$clean = str_replace("\\","/",str_replace($root,"",$file->file_path));
+						if(strpos($clean,"/")===FALSE){ 
+							if(!isset($changes[__("Core")])){
+								$changes[__("Core")] = array();
+							}
+							array_push($changes[__("Core")], $file);
+							unset($new_files[$index]);
+						}
 					}
-					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-					update_option("fewster_time_files_changed", $data[4]);
 				}
+				
+				if(isset($changes[__("Core")])){
+					$core .= "<h3>" . __("Core changes") . "</h3>";
+					$core .= "<p>" . count($changes[__("Core")]) . " " . __("time stamp changes to files have happened in WordPress core");
+					global $wp_version, $wpdb;
+					$response = $wpdb->get_row( "SELECT * FROM " . $wpdb->prefix . "fewster_site_info WHERE type='core'" );
+					if(isset($response->version)){
+						if($wp_version!=$response->version){
+							$core .= '<p>' . __("WordPress has been updated, so this is to be expected") . ' <a style="background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;" target="_blank" href="' . admin_url("admin.php?page=fewster-update-core") . '">' . __("Run an update") . '</a></p>';
+						}
+					}
+				}
+				unset($changes[__("Core")]);
+				
+				if(count($changes)!=0){
+					$p_and_t .= "<h3>" . __("Theme and plugin changes") . "</h3>";
+					foreach($changes as $index => $data){
+						
+						$p_and_t .= "<h4>" . $index . "</h4>";
+						if(count($data)==1){
+							$p_and_t .= "<p>" . count($data) . " " . __("time stamp changes to files has happened in") . " " . $index;
+						}else{
+							$p_and_t .= "<p>" . count($data) . " " . __("time stamp changes to files has happened in") . " " . $index;
+						}
+						$p_and_t .= '<p>' . $index . __(" has been updated, so this is to be expected. You should run an update however.") . '</p>';
+					}
+				}
+					
+				if(count($new_files)!=0){
+					$new = "<h3>" . __("Important changes") . "</h3>";
+					$new .= "<p>" . __("These files with time stamp changes are outside updated areas and so are potentially dangerous. You should check these files") . "</p>";
+					foreach($new_files as $file){
+						$new .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";		
+					}
+				}
+				
+				$email = "<table>";
+				$email .= "<tr>";
+				$email .= "<td>" . $main . "</td>";
+				$email .= "</tr>";
+				$email .= "<tr>";
+				$email .= "<td width='50%'>" . $new . $core . $p_and_t . "</td>";
+				$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
+				$email .= "</tr>";				
+				$email .= "<tr>";
+				$email .= "<td><h3>" . __("All changes") . "</h3>";
+				foreach($list as $file){
+					$email .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";	
+				}
+				$email .= "</td>";
+				$email .= "</tr>";
+				$email .= "</table>";
+				
+				add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+				add_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+				$address = explode(";", get_option("fewster_email"));
+				foreach($address as $recipient){
+					wp_mail($recipient, __("Fewster Report for") . " " . get_bloginfo("name") . " : " . $total . " " . __("time stamp changes detected"), $email);
+				}
+				remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+				remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+			
+				$wpdb->query("Update " . $wpdb->prefix . "fewster_notifications set notification_sent = 1 where file_change_type='time' and notification_sent = 0");
+			
+			}
+				
+		}
+		
+		function new_scan(){
+		
+			global $wpdb;
+			require_once("library/fewster_scan_library.php");
+			$updates = $this->get_updates();
+			
+			$library = new fewster_scan_library();
+			$root = $library->get_config_path();
+			$data = $library->scan_notify_new();
+
+			$new_files = $wpdb->get_results('select * from ' . $wpdb->prefix . 'fewster_notifications where file_change_type="new" and notification_sent = 0 ', OBJECT);
+			$list = $new_files;		
+
+			$new = count($new_files);
+			$total = count($new_files);
+
+			if($new != 0){
+				$email = "";
+				$main = "";
+				$major = "";
+				$core = "";
+				$p_and_t = "";
+				
+				$main = "<h2>" . $data[0] . " files have been scanned</h2>";
+				if($new!=1){
+					$main .= "<p>" . $new . " new files exist";
+				}else{
+					$main .= "<p>" . $new . " new file exists";
+				}
+				
+				$main .= "<span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check new files") . "</a></span></p>";
+				
+				$changes = $this->site_check_overall();
+				if($changes!=""){
+					$major .= "<h2>" . __("Major changes") . "</h2>";
+					$major .= $changes;
+				}
+				
+				$changes = array();
+				
+				foreach($new_files as $index => $file){
+					if(strpos($file->file_path,"wp-content")!==FALSE){
+						foreach($updates as $update){
+							if(strpos($file->file_path,$update[1])!==FALSE){
+								if(!isset($changes[$update[0]])){
+									$changes[$update[0]] = array();
+								}
+								array_push($changes[$update[0]], $file);
+								unset($new_files[$index]);
+							}
+						}
+					} else if(strpos($file->file_path,"wp-includes")!==FALSE){
+						if(!isset($changes[__("Core")])){
+							$changes[__("Core")] = array();
+						}
+						array_push($changes[__("Core")], $file);
+						unset($new_files[$index]);
+					} else if(strpos($file->file_path,"wp-admin")!==FALSE){
+						if(!isset($changes[__("Core")])){
+							$changes[__("Core")] = array();
+						}
+						array_push($changes[__("Core")], $file);
+						unset($new_files[$index]);
+					} else {
+						$clean = str_replace("\\","/",str_replace($root,"",$file->file_path));
+						if(strpos($clean,"/")===FALSE){ 
+							if(!isset($changes[__("Core")])){
+								$changes[__("Core")] = array();
+							}
+							array_push($changes[__("Core")], $file);
+							unset($new_files[$index]);
+						}
+					}
+				}
+				
+				if(isset($changes[__("Core")])){
+					$core .= "<h3>" . __("Core changes") . "</h3>";
+					$core .= "<p>" . count($changes[__("Core")]) . " " . __("new files have been created in WordPress core");
+					global $wp_version, $wpdb;
+					$response = $wpdb->get_row( "SELECT * FROM " . $wpdb->prefix . "fewster_site_info WHERE type='core'" );
+					if(isset($response->version)){
+						if($wp_version!=$response->version){
+							$core .= '<p>' . __("WordPress has been updated, so this is to be expected") . ' <a style="background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;" target="_blank" href="' . admin_url("admin.php?page=fewster-update-core") . '">' . __("Run an update") . '</a></p>';
+						}
+					}
+				}
+				unset($changes[__("Core")]);
+				
+				if(count($changes)!=0){
+					$p_and_t .= "<h3>" . __("Theme and plugin changes") . "</h3>";
+					foreach($changes as $index => $data){
+						$p_and_t .= "<h4>" . $index . "</h4>";
+						if(count($data)==1){
+							$p_and_t .= "<p>" . count($data) . " " . __("new file has been created in") . " " . $index;
+						}else{
+							$p_and_t .= "<p>" . count($data) . " " . __("new files have been created in") . " " . $index;
+						}
+						$p_and_t .= '<p>' . $index . __(" has been updated, so this is to be expected. You should run an update however.") . '</p>';
+					}				
+				}
+				
+				if(count($new_files)!=0){
+					$new = "<h3>" . __("Important changes") . "</h3>";
+					$new .= "<p>" . __("These new files are outside updated areas and so are potentially dangerous. You should check these files") . "</p>";
+					foreach($new_files as $file){
+						$new .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";		
+					}
+				}
+				
+				$email = "<table>";
+				$email .= "<tr>";
+				$email .= "<td>" . $main . "</td>";
+				$email .= "</tr>";
+				$email .= "<tr>";
+				$email .= "<td width='50%'>" . $new . $core . $p_and_t . "</td>";
+				$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
+				$email .= "</tr>";				
+				$email .= "<tr>";
+				$email .= "<td><h3>" . __("All changes") . "</h3>";
+				foreach($list as $file){
+					$email .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";	
+				}
+				$email .= "</td>";
+				$email .= "</tr>";
+				$email .= "</table>";
+				
+				add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+				add_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+				$address = explode(";", get_option("fewster_email"));
+				foreach($address as $recipient){
+					wp_mail($recipient, __("Fewster Report for") . " " . get_bloginfo("name") . " : " . $total . " " . __("new files detected"), $email);
+				}
+				remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+				remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+				
+				$wpdb->query("Update " . $wpdb->prefix . "fewster_notifications set notification_sent = 1 where file_change_type='new' and notification_sent = 0");
+
 			}
 				
 		}
@@ -335,6 +697,9 @@
 			return 'text/html';
 		}
 
+		function set_from_name( $name ) {
+			return __("Fewster Anti-Bad");
+		}
 	
 	}
 	
@@ -377,3 +742,4 @@
 	require_once("process/fewster_theme_integrity_check.php");
 	require_once("process/fewster_menu.php");
 	require_once("scan/fewster-scan-integrity.php");	
+	require_once("scan/fewster-scan-notify.php");	
