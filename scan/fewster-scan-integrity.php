@@ -24,14 +24,13 @@
 		}
 	
 		function menu_create(){
-			add_submenu_page( "fewster-anti-bad", __("Scan changed fies"), __("Scan changed files"), "manage_options", "fewster-scan-integrity-change", array($this, "scan_changes") );
+			add_submenu_page( "fewster-anti-bad", __("Scan changed files"), __("Scan changed files"), "manage_options", "fewster-scan-integrity-change", array($this, "scan_changes") );
 		}
 		
 		function scan_changes(){
 			require_once(dirname(__FILE__) ."/../library/fewster_scan_library.php");
 			$library = new fewster_scan_library();
 			$library->scan_integrity();
-			update_option("fewster_last_scan", time());
 		}
 	
 	}
