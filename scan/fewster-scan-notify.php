@@ -17,6 +17,7 @@
 		}
 		
 		function notifications(){
+		
 			global $wpdb;
 			echo "<h2>" . __("Notifications log") . "</h2>";
 			if(isset($_POST['purge'])){

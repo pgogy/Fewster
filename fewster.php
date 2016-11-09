@@ -154,6 +154,27 @@
 					);";
 					
 				@dbDelta($sql);
+				
+				update_option("fewster_init", 2);
+			
+			}
+			
+			if(get_option("fewster_init")==1 || get_option("fewster_init")==2){
+			
+				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+			
+				$table_name = $wpdb->prefix . "fewster_file_changes";
+
+				$sql = "CREATE TABLE " . $table_name . " (
+					  id bigint(20) NOT NULL AUTO_INCREMENT,
+					  file_path text,
+					  changes bigint(20),
+					  UNIQUE KEY id(id)
+					);";
+					
+				@dbDelta($sql);
+				
+				update_option("fewster_init", 3);
 			
 			}
 
@@ -247,6 +268,37 @@
 			return $this->updates;
 			
 		}
+
+		function track_changes($data){
+		
+			$files = array();
+			foreach($data as $file){
+				if(!in_array($file->file_path,$files)){
+					array_push($files,$file->file_path);
+				}
+			}
+			
+			global $wpdb;
+			foreach($files as $file){
+				$changes = $wpdb->get_results('select * from ' . $wpdb->prefix . 'fewster_file_changes where file_path = "' . $file . '"', OBJECT);
+				if(count($changes)==0){
+					$query = $wpdb->prepare("INSERT INTO " . $wpdb->prefix . "fewster_file_changes (file_path,changes)VALUES(%s,%d)",$file,1);	
+					$response = $wpdb->query($query);
+				}else{
+					$query = $wpdb->prepare("update " . $wpdb->prefix . "fewster_file_changes set changes = changes + 1 where file_path = '%s'",$file);
+					$response = $wpdb->query($query);
+				}
+			}	
+
+			$change_data = array();
+			$changes = $wpdb->get_results('select * from ' . $wpdb->prefix . 'fewster_file_changes', OBJECT);
+			foreach($changes as $change){
+				$change_data[$change->file_path] = $change->changes;
+			}
+			
+			return $change_data;
+		
+		}
 		
 		function size_scan(){
 		
@@ -257,8 +309,10 @@
 			$library = new fewster_scan_library();
 			$root = $library->get_config_path();
 			$data = $library->scan_notify_size();
-
+			
 			$new_files = $wpdb->get_results('select * from ' . $wpdb->prefix . 'fewster_notifications where file_change_type="size" and notification_sent = 0 ', OBJECT);
+			
+			$change_data = $this->track_changes($new_files);
 			
 			$list = $new_files;	
 		
@@ -279,7 +333,7 @@
 					$main .= "<p>" . $new . " file size changes have happened";
 				}
 				
-				$main .= "<span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check these files") . "</a></span></p>";
+				$main .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check these files") . "</a></span></p></p>";
 				
 				$changes = $this->site_check_overall();
 				if($changes!=""){
@@ -355,7 +409,15 @@
 					$new = "<h3>" . __("Important changes") . "</h3>";
 					$new .= "<p>" . __("These files with file size changes are outside updated areas and so are potentially dangerous. You should check these files") . "</p>";
 					foreach($new_files as $file){
-						$new .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";		
+						$new .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";
+						if(isset($change_data[$file->file_path])){
+							if($change_data[$file->file_path]==1){
+								$new .= "<p>" . __("This is the first time this file had changed") . "</p>";
+							}else{
+								$new .= "<p>" . __("This file has changed") . " " . $change_data[$file->file_path] . " " . __("times") . "</p>";							
+							}
+						}
+						$new .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-whitelist&file=" . $file->file_path) . "'>" . __("Whitelist this file") . "</a></span></p>";
 					}
 				}
 				
@@ -387,7 +449,6 @@
 				
 				$wpdb->query("Update " . $wpdb->prefix . "fewster_notifications set notification_sent = 1 where file_change_type='size' and notification_sent = 0");
 
-				
 			}
 				
 		}
@@ -403,6 +464,9 @@
 			$data = $library->scan_notify_time();
 
 			$new_files = $wpdb->get_results('select * from ' . $wpdb->prefix . 'fewster_notifications where file_change_type="time" and notification_sent =0 ', OBJECT);
+			
+			$change_data = $this->track_changes($new_files);
+			
 			$list = $new_files;
 		
 			$new = count($new_files);
@@ -422,7 +486,7 @@
 					$main .= "<p>" . $new . " time stamp changes have happened";
 				}
 				
-				$main .= "<span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check new files") . "</a></span></p>";
+				$main .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check new files") . "</a></span></p></p>";
 				
 				$changes = $this->site_check_overall();
 				if($changes!=""){
@@ -498,7 +562,15 @@
 					$new = "<h3>" . __("Important changes") . "</h3>";
 					$new .= "<p>" . __("These files with time stamp changes are outside updated areas and so are potentially dangerous. You should check these files") . "</p>";
 					foreach($new_files as $file){
-						$new .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";		
+						$new .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";
+						if(isset($change_data[$file->file_path])){
+							if($change_data[$file->file_path]==1){
+								$new .= "<p>" . __("This is the first time this file had changed") . "</p>";
+							}else{
+								$new .= "<p>" . __("This file has changed") . " " . $change_data[$file->file_path] . " " . __("times") . "</p>";							
+							}
+						}						
+						$new .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-whitelist&file=" . $file->file_path) . "'>" . __("Whitelist this file") . "</a></span></p>";
 					}
 				}
 				
