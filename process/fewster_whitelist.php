@@ -14,14 +14,32 @@
 		function whitelist($file){
 			?><h2><?PHP echo __("Whitelisting"); ?> <?PHP echo $_GET['file']; ?></h2><?PHP
 			if(!isset($_POST['fewster_file'])){
+				
+				$whitelisted = false;
+
+				$whitelist = get_option("fewster_whitelist");
+
+				if(is_array($whitelist)){
+	
+					if(in_array($_GET['file'], $whitelist)){
+
+						$whitelisted = true;
+
+					}
+		
+				}
+				if(!$whitelisted){
 				?>
-				<p><?PHP echo __("Are you certain you wish to whitelist") . " " . $_GET['file']; ?>?</p>
-				<form action="" method="POST"> 
-					<input type="hidden" name="fewster_file" value="<?PHP echo $_GET['file']; ?>" />
-					<input type="submit" class="button-primary" value="<?php _e('Whitelist') ?>" />
-					<?PHP echo wp_nonce_field("fewster_repair","fewster_repair"); ?>
-				</form>
-				<?PHP
+					<p><?PHP echo __("Are you certain you wish to whitelist") . " " . $_GET['file']; ?>?</p>
+					<form action="" method="POST"> 
+						<input type="hidden" name="fewster_file" value="<?PHP echo $_GET['file']; ?>" />
+						<input type="submit" class="button-primary" value="<?php _e('Whitelist') ?>" />
+						<?PHP echo wp_nonce_field("fewster_repair","fewster_repair"); ?>
+					</form>
+					<?PHP
+				}else{
+					?><p><?PHP echo __("This file is already whitelisted"); ?></p><?PHP
+				}
 			}else{
 				if(wp_verify_nonce($_POST['fewster_repair'],"fewster_repair")){
 				
