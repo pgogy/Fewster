@@ -21,7 +21,15 @@
 			global $wpdb;
 			echo "<h2>" . __("Notifications log") . "</h2>";
 			if(isset($_POST['purge'])){
-				echo "<p>" . __("Notifications purged") . "</p>";
+				$deleted = $wpdb->query('truncate ' . $wpdb->prefix . 'fewster_notifications');
+				if($deleted!==false){
+					echo "<p>" . __("Notifications purged") . "</p>";
+				}else{
+					echo "<p>" . __("Error") . "</p>";
+					echo "<pre>";
+					print_r($wpdb);
+					echo "</pre>";
+				}				
 			}else{
 				$sort = "order by timestamp desc";
 				if(isset($_GET['sort_by'])){

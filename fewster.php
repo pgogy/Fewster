@@ -304,8 +304,8 @@
 		
 			global $wpdb;
 			require_once("library/fewster_scan_library.php");
-			$updates = $this->get_updates();
-			
+			$updates = $this->get_updates();			
+
 			$library = new fewster_scan_library();
 			$root = $library->get_config_path();
 			$data = $library->scan_notify_size();
@@ -377,6 +377,18 @@
 						}
 					}
 				}
+
+				$changesEmail = "";
+				if(isset($changes[__("Core")])){
+					if(isset($response->version)){
+						if($wp_version!=$response->version){
+							$changesEmail .= "<p>" . __("Core has been updated") . "</p>";
+						}
+					}
+				}
+				foreach($updates as $update){
+					$changesEmail .= "<p>" . __("Plugin / Theme") . " " . $update[1] . " " . __("has been updated") . "</p>";
+				}
 				
 				if(isset($changes[__("Core")])){
 					$core .= "<h3>" . __("Core changes") . "</h3>";
@@ -422,6 +434,9 @@
 				}
 				
 				$email = "<table>";
+				$email .= "<tr>";
+				$email .= "<td>" . $changesEmail . "</td>";
+				$email .= "</tr>";				
 				$email .= "<tr>";
 				$email .= "<td>" . $main . "</td>";
 				$email .= "</tr>";
