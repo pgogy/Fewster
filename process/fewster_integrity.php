@@ -59,7 +59,7 @@
 			$counter = 0;
 			foreach($files as $file){
 				echo "<li>";
-				echo "<input repair_url='" . admin_url("admin.php?page=fewster-r-r&file=" . $file['name']) . "' id='fewster_file_" . $counter . "'  type='checkbox' checked file='" . $file['name'] . "'>" . $file['name'] . "<span class='fewster_integrity_response' id='fewster_file_" . $counter++ . "_status' ></span></li>";
+				echo "<input delete_url='" . admin_url("admin.php?page=fewster-delete&file=" . $file['name']) . "' diff_url='" . admin_url("admin.php?page=fewster-r-diff&file=" . $file['name']) . "' repair_url='" . admin_url("admin.php?page=fewster-r-r&file=" . $file['name']) . "' id='fewster_file_" . $counter . "'  type='checkbox' checked file='" . $file['name'] . "'>" . $file['name'] . "<span class='fewster_integrity_response' id='fewster_file_" . $counter++ . "_status' ></span></li>";
 			}
 			echo "</ul>";
 			echo "</form>";
