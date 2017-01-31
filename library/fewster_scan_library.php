@@ -360,7 +360,7 @@
 
 				if($issue){
 					echo "<li>";
-					echo "<input repair_url='" . admin_url("admin.php?page=fewster-r-r&file=" . $data['name']) . "' id='fewster_file_" . $this->counter . "'  type='checkbox' checked file='" . $data['name'] . "'>" . $data['name'] . "<span class='fewster_integrity_response' id='fewster_file_" . $this->counter++ . "_status' ></span></li>";
+					echo "<input delete_url='" . admin_url("admin.php?page=fewster-delete&file=" . $data['name']) . "' diff_url='" . admin_url("admin.php?page=fewster-r-diff&file=" . $data['name']) . "' repair_url='" . admin_url("admin.php?page=fewster-r-r&file=" . $data['name']) . "' id='fewster_file_" . $this->counter . "'  type='checkbox' checked file='" . $data['name'] . "'>" . $data['name'] . "<span class='fewster_integrity_response' id='fewster_file_" . $this->counter++ . "_status' ></span></li>";
 				}
 			}
 			echo "</ul>";
