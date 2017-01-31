@@ -1,5 +1,5 @@
 function fewster_integrity(items, orig_length, problems, ajax_action){
-	
+
 	if(items.length!=0){
 	
 		item = items.shift();
@@ -18,21 +18,25 @@ function fewster_integrity(items, orig_length, problems, ajax_action){
 		
 		jQuery.post(fewster_select.ajaxURL, data, function(response) {
 		
-			if(response==1){
+			data = JSON.parse(response);
+		
+			if(data[0]==true){
 				jQuery(item).attr("passed",true);
 				jQuery("#" + jQuery(item).attr("id") + "_status")
 					.html("Verified")
 					.css("color","#0F0");
-			}else if(response==0){
-				jQuery("#" + jQuery(item).attr("id") + "_status")
-					.html("Error - <a target='_blank' href='" + jQuery(item).attr("repair_url") + "&no_update=true'>Remote Repair</a>")
-					.css("color","#F00");
-					problems++;
-			}else if(response==2){
-				jQuery("#" + jQuery(item).attr("id") + "_status")
-					.html("Error - Remote File not found")
-					.css("color","#F00");
-					problems++;
+			}else if(data[0]==false){
+				if(data[1]=="No remote file found"){
+					jQuery("#" + jQuery(item).attr("id") + "_status")
+						.html("Error - " + data[1] + " - <a target='_blank' href='" + jQuery(item).attr("delete_url") + "&no_update=true'>Delete file</a>")
+						.css("color","#F00");
+	
+				}else{
+					jQuery("#" + jQuery(item).attr("id") + "_status")
+						.html("Error - " + data[1] + " -  <a target='_blank' href='" + jQuery(item).attr("repair_url") + "&no_update=true'>Remote Repair</a> | <a target='_blank' href='" + jQuery(item).attr("diff_url") + "&no_update=true'>See differences</a>")
+						.css("color","#F00");
+				}
+				problems++;
 			}
 		
 			width = jQuery("#fewster_importProgress")
@@ -126,6 +130,15 @@ jQuery(document).ready(
 							
 						jQuery("#importProgressBar")
 							.html("0%");	
+					
+						jQuery("form#fewster_integrity_form input:checkbox:not(:checked)")
+							.each(							
+								function(index,value){	
+									jQuery(value)
+										.parent()
+										.css("display","none");
+								}
+							);
 					
 						jQuery("form#fewster_integrity_form input:checked")
 							.each(							
