@@ -1,9 +1,5 @@
 function fewster_quick_integrity_data(type, name, file){
 
-	console.log(type);
-	console.log(name);
-	console.log(file);
-
 	var data = {
 		action : "fewster_quick_integrity_data",
 		fewster_file : file,
@@ -14,9 +10,6 @@ function fewster_quick_integrity_data(type, name, file){
 		.css("display","block");
 		
 	jQuery.post(fewster_quick_integrity.ajaxURL, data, function(response) {
-	
-			console.log("here");
-			console.log(response);
 	
 			return_data = JSON.parse(response);
 			counter = 0;
