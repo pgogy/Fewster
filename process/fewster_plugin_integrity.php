@@ -50,7 +50,7 @@
 			echo "<p>" . __("Some files have issues. You can ignore these issues and continue if they are known problems, or fix using remote repair and then run the check again") . "</p>";
 			echo "<p><a href='" . admin_url("admin.php?page=fewster-integrity-plugins") . "'>" . __("Check again") . "</a></p>";
 			echo "<p><a href='" . admin_url("admin.php?page=fewster-scan") . "'>" . __("Run a first scan") . "</a></p>";
-			echo "<p><a href='" . admin_url("admin.php?page=fewster-scan-bypass&type=plugins") . "'>" . __("Accept integrity results even with issues") . "</a></p></div>";
+			echo "<p><a href='" . admin_url("admin.php?page=fewster-scan-bypass-plugins&type=plugins") . "'>" . __("Accept integrity results even with issues") . "</a></p></div>";
 			echo "<div id='fewster_importProgress'><p><strong>" . __("Scan Progress") . " <span id='importTotal'></span></strong></p><div id='importProgressBar'></div></div>";
 			echo '<form id="fewster_integrity_form" action="javascript:function connect(){return false;};">';
 			echo "<input type='submit' id='fewster_integrity' value='" . __("Run Integrity Check") . "' />";	
@@ -59,7 +59,7 @@
 			$counter = 0;
 			foreach($files as $file){
 				echo "<li>";
-				echo "<input repair_url='" . admin_url("admin.php?page=fewster-r-r&file=" . $file['name']) . "' id='fewster_file_" . $counter . "'  type='checkbox' checked file='" . $file['name'] . "'>" . $file['name'] . "<span class='fewster_integrity_response' id='fewster_file_" . $counter++ . "_status' ></span></li>";
+				echo "<input delete_url='" . admin_url("admin.php?page=fewster-delete&file=" . $file['name']) . "'s diff_url='" . admin_url("admin.php?page=fewster-r-diff&file=" . $file['name']) . "' repair_url='" . admin_url("admin.php?page=fewster-r-r&file=" . $file['name']) . "' id='fewster_file_" . $counter . "'  type='checkbox' checked file='" . $file['name'] . "'>" . $file['name'] . "<span class='fewster_integrity_response' id='fewster_file_" . $counter++ . "_status' ></span></li>";
 			}
 			echo "</ul>";
 			echo "</form>";
