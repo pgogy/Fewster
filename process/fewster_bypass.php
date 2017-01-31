@@ -13,6 +13,7 @@
 		}
 		
 		function core(){
+
 			?><h2><?PHP echo __("Bypassing core integrity"); ?></h2><?PHP
 			if(!isset($_POST['fewster_bypass'])){
 				?>
@@ -37,7 +38,7 @@
 			?><h2><?PHP echo __("Bypassing plugin integrity"); ?></h2><?PHP
 			if(!isset($_POST['fewster_bypass_p'])){
 				?>
-				<p><?PHP echo __("Are you certain you wish to bypass core integrity"); ?>?</p>
+				<p><?PHP echo __("Are you certain you wish to bypass plugin and theme integrity"); ?>?</p>
 				<form action="" method="POST"> 
 					<input type="submit" class="button-primary" value="<?php _e('Bypass') ?>" />
 					<?PHP echo wp_nonce_field("fewster_bypass_p","fewster_bypass_p"); ?>
