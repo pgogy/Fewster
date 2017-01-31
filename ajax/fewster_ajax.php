@@ -139,24 +139,32 @@
 				$remote_library = new fewster_remote_library;
 				
 				$remote_file = $remote_library->get_core();
+				
+				$status = true;
+				$reason = "";
 					
-				if($remote_file){
+				if($remote_file!=false){
 					
 					$local_file = file_get_contents($_POST['fewster_file']);
 					
-					if(strlen($local_file)!=strlen($remote_file)){
-						echo false;
+					if(strlen(trim($local_file))!=strlen(trim($remote_file[1]))){
+						$result = $this->compare($local_file, $remote_file[1]);
+						if(!$result[0]){
+							$reason = __("Different file size and content");
+							$status = false;
+						}						
 					}else{
-						for($x=(strlen($local_file)-1);$x!=0;$x--){
-							if($remote_file[$x]!=$local_file[$x]){
-								echo false;
-							}
-						}
-						echo true;
+						$result = $this->compare($local_file, $remote_file[1]);
+						$status = $result[0];
+						$reason = __("Different file content");			
 					}
 					
+				}else{
+					$reason = __("No remote file");
+					$status = false;
 				}
 			}
+			echo json_encode(array($status, $reason));
 			die();
 		}
 	
@@ -165,12 +173,17 @@
 				require_once(dirname(__FILE__) . "/../library/fewster_remote_library.php");
 				$remote_library = new fewster_remote_library;
 				
+				$status = true;
+				$reason = "";
+				
 				if(strpos($_POST['fewster_file'],"wp-content/plugins")!==FALSE){
 					$file = $remote_library->get_plugin();
 					if($file){
 						$remote_file = $file[1];
 					}else{
-						echo 2;
+						$reason = __("No remote file found");
+						$status = false;
+						echo json_encode(array($status, $reason));
 						die();
 					}
 				}else if(strpos($_POST['fewster_file'],"wp-content/themes")!==FALSE){
@@ -178,33 +191,82 @@
 					if($file){
 						$remote_file = $file[1];
 					}else{
-						echo 2;
+						$reason = __("No remote file found");
+						$status = false;
+						echo json_encode(array($status, $reason));
 						die();
 					}
 				}else{
-					$remote_file = $remote_library->get_core();
+					$file = $remote_library->get_core();
+					if($file){
+						$remote_file = $file[1];
+					}else{
+						$reason = __("No remote file found");
+						$status = false;
+						echo json_encode(array($status, $reason));
+						die();
+					}
 				}
 		
 				if($remote_file){
 					
 					$local_file = file_get_contents($_POST['fewster_file']);
 					
-					if(strlen($local_file)!=strlen($remote_file)){
-						echo false;
+					if(strlen(trim($local_file))!=strlen(trim($remote_file))){
+						$result = $this->compare($local_file, $remote_file);
+						if(!$result[0]){
+							$reason = __("Different file size and content");
+							$status = false;
+						}						
 					}else{
-						for($x=(strlen($local_file)-1);$x!=0;$x--){
-							if($remote_file[$x]!=$local_file[$x]){
-								echo false;
-							}
-						}
-						echo true;
+						$result = $this->compare($local_file, $remote_file);
+						$status = $result[0];
+						$reason = __("Different file content");			
 					}
 					
 				}else{
-					print_r($file);
+					$reason = __("No remote file");
+					$status = false;
 				}
 			}
+			echo json_encode(array($status, $reason));
 			die();
+		}
+
+		function compare($local_file, $remote_file){
+			
+			$status = true;
+			$reason = "";
+
+			for($x=(strlen($local_file)-1);$x!=0;$x--){
+				if($remote_file[$x]!=$local_file[$x]){
+					$reason = __("Different file content");
+					$status = false;
+				}
+			}
+
+			if(!$status){
+
+				$status = true;
+				$reason = "";
+
+				$current_lines = explode("\n", str_replace("\r", "\n", $local_file));
+				$remote_lines = explode("\n", $remote_file);
+				
+				$counter = 0;
+
+				for($x=0;$x<=count($current_lines);$x++){
+					if(strcmp(trim($current_lines[$x]),trim($remote_lines[$x]))!=0){
+						$reason = __("Different file content");
+						$status = false;
+						break;
+					}
+				}
+
+			}
+
+			return array($status, $reason);
+
 		}
 
 	}
