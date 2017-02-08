@@ -387,11 +387,6 @@
 						}
 					}
 				}
-
-				foreach($updates as $update){
-					$cleaned_path = str_replace("fewster/process/../../","", $update[1]);
-					$changesEmail .= "<p>" . __("Plugin / Theme") . " " . $cleaned_path . " " . __("has been updated") . "</p>";
-				}
 				
 				if(isset($changes[__("Core")])){
 					$core .= "<h3>" . __("Core changes") . "</h3>";
@@ -420,19 +415,21 @@
 					}					
 				}
 				
+				$new_text = "";
+				
 				if(count($new_files)!=0){
-					$new = "<h3>" . __("Important changes") . "</h3>";
-					$new .= "<p>" . __("These files with file size changes are outside updated areas and so are potentially dangerous. You should check these files") . "</p>";
+					$new_text = "<h3>" . __("Important changes") . "</h3>";
+					$new_text .= "<p>" . __("These files with file size changes are outside updated areas and so are potentially dangerous. You should check these files") . "</p>";
 					foreach($new_files as $file){
-						$new .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";
+						$new_text .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";
 						if(isset($change_data[$file->file_path])){
 							if($change_data[$file->file_path]==1){
-								$new .= "<p>" . __("This is the first time this file had changed") . "</p>";
+								$new_text .= "<p>" . __("This is the first time this file had changed") . "</p>";
 							}else{
-								$new .= "<p>" . __("This file has changed") . " " . $change_data[$file->file_path] . " " . __("times") . "</p>";							
+								$new_text .= "<p>" . __("This file has changed") . " " . $change_data[$file->file_path] . " " . __("times") . "</p>";							
 							}
 						}
-						$new .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-whitelist&file=" . $file->file_path) . "'>" . __("Whitelist this file") . "</a></span></p>";
+						$new_text .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-whitelist&file=" . $file->file_path) . "'>" . __("Whitelist this file") . "</a></span></p>";
 					}
 				}
 				
@@ -444,7 +441,7 @@
 				$email .= "<td>" . $main . "</td>";
 				$email .= "</tr>";
 				$email .= "<tr>";
-				$email .= "<td width='50%'>" . $new . $core . $p_and_t . "</td>";
+				$email .= "<td width='50%'>" . $new_text . $core . $p_and_t . "</td>";
 				$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
 				$email .= "</tr>";
 				$email .= "<tr>";
@@ -577,19 +574,21 @@
 					}
 				}
 					
+				$new_text = "";	
+					
 				if(count($new_files)!=0){
-					$new = "<h3>" . __("Important changes") . "</h3>";
-					$new .= "<p>" . __("These files with time stamp changes are outside updated areas and so are potentially dangerous. You should check these files") . "</p>";
+					$new_text = "<h3>" . __("Important changes") . "</h3>";
+					$new_text .= "<p>" . __("These files with time stamp changes are outside updated areas and so are potentially dangerous. You should check these files") . "</p>";
 					foreach($new_files as $file){
-						$new .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";
+						$new_text .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";
 						if(isset($change_data[$file->file_path])){
 							if($change_data[$file->file_path]==1){
-								$new .= "<p>" . __("This is the first time this file had changed") . "</p>";
+								$new_text .= "<p>" . __("This is the first time this file had changed") . "</p>";
 							}else{
-								$new .= "<p>" . __("This file has changed") . " " . $change_data[$file->file_path] . " " . __("times") . "</p>";							
+								$new_text .= "<p>" . __("This file has changed") . " " . $change_data[$file->file_path] . " " . __("times") . "</p>";							
 							}
 						}						
-						$new .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-whitelist&file=" . $file->file_path) . "'>" . __("Whitelist this file") . "</a></span></p>";
+						$new_text .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-whitelist&file=" . $file->file_path) . "'>" . __("Whitelist this file") . "</a></span></p>";
 					}
 				}
 				
@@ -598,7 +597,7 @@
 				$email .= "<td>" . $main . "</td>";
 				$email .= "</tr>";
 				$email .= "<tr>";
-				$email .= "<td width='50%'>" . $new . $core . $p_and_t . "</td>";
+				$email .= "<td width='50%'>" . $new_text . $core . $p_and_t . "</td>";
 				$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
 				$email .= "</tr>";				
 				$email .= "<tr>";
@@ -727,11 +726,13 @@
 					}				
 				}
 				
+				$new_text = "";
+				
 				if(count($new_files)!=0){
-					$new = "<h3>" . __("Important changes") . "</h3>";
-					$new .= "<p>" . __("These new files are outside updated areas and so are potentially dangerous. You should check these files") . "</p>";
+					$new_text = "<h3>" . __("Important changes") . "</h3>";
+					$new_text .= "<p>" . __("These new files are outside updated areas and so are potentially dangerous. You should check these files") . "</p>";
 					foreach($new_files as $file){
-						$new .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";		
+						$new_text .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";		
 					}
 				}
 				
@@ -740,7 +741,7 @@
 				$email .= "<td>" . $main . "</td>";
 				$email .= "</tr>";
 				$email .= "<tr>";
-				$email .= "<td width='50%'>" . $new . $core . $p_and_t . "</td>";
+				$email .= "<td width='50%'>" . $new_text . $core . $p_and_t . "</td>";
 				$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
 				$email .= "</tr>";				
 				$email .= "<tr>";
