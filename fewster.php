@@ -346,8 +346,7 @@
 				foreach($new_files as $index => $file){
 					if(strpos($file->file_path,"wp-content")!==FALSE){
 						foreach($updates as $update){
-							$cleaned_path = str_replace("fewster/process/../../","", $update[1]);
-							if(strpos($file->file_path,$cleaned_path)!==FALSE){
+							if(strpos($file->file_path,$update[1])!==FALSE){
 								if(!isset($changes[$update[0]])){
 									$changes[$update[0]] = array();
 								}
@@ -514,8 +513,7 @@
 				foreach($new_files as $index => $file){
 					if(strpos($file->file_path,"wp-content")!==FALSE){
 						foreach($updates as $update){
-							$cleaned_path = str_replace("fewster/process/../../","", $update[1]);
-							if(strpos($file->file_path,$cleaned_path)!==FALSE){
+							if(strpos($file->file_path,$update[1])!==FALSE){
 								if(!isset($changes[$update[0]])){
 									$changes[$update[0]] = array();
 								}
@@ -667,8 +665,7 @@
 				foreach($new_files as $index => $file){
 					if(strpos($file->file_path,"wp-content")!==FALSE){
 						foreach($updates as $update){
-							$cleaned_path = str_replace("fewster/process/../../","", $update[1]);
-							if(strpos($file->file_path,$cleaned_path)!==FALSE){
+							if(strpos($file->file_path,$update[1])!==FALSE){
 								if(!isset($changes[$update[0]])){
 									$changes[$update[0]] = array();
 								}
