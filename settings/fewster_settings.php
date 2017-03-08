@@ -156,6 +156,16 @@ class fewster_settings{
 			echo " selected ";
 		}
 		echo ">" . __("Daily") . "</option>";
+		echo "<option value='twodays' ";
+		if(get_option("fewster_new_file")=="twodays"){
+			echo " selected ";
+		}
+		echo ">" . __("Every two days") . "</option>";
+		echo "<option value='weekly' ";
+		if(get_option("fewster_new_file")=="weekly"){
+			echo " selected ";
+		}
+		echo ">" . __("Weekly") . "</option>";
 		echo "<option value='never' ";
 		if(get_option("fewster_time_file")=="never"){
 			echo " selected ";
@@ -197,6 +207,16 @@ class fewster_settings{
 			echo " selected ";
 		}
 		echo ">" . __("Daily") . "</option>";
+		echo "<option value='twodays' ";
+		if(get_option("fewster_new_file")=="twodays"){
+			echo " selected ";
+		}
+		echo ">" . __("Every two days") . "</option>";
+		echo "<option value='weekly' ";
+		if(get_option("fewster_new_file")=="weekly"){
+			echo " selected ";
+		}
+		echo ">" . __("Weekly") . "</option>";
 		echo "<option value='never' ";
 		if(get_option("fewster_size_file")=="never"){
 			echo " selected ";
@@ -238,6 +258,16 @@ class fewster_settings{
 			echo " selected ";
 		}
 		echo ">" . __("Daily") . "</option>";
+		echo "<option value='twodays' ";
+		if(get_option("fewster_new_file")=="twodays"){
+			echo " selected ";
+		}
+		echo ">" . __("Every two days") . "</option>";
+		echo "<option value='weekly' ";
+		if(get_option("fewster_new_file")=="weekly"){
+			echo " selected ";
+		}
+		echo ">" . __("Weekly") . "</option>";
 		echo "<option value='never' ";
 		if(get_option("fewster_new_file")=="never"){
 			echo " selected ";
