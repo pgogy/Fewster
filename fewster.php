@@ -21,6 +21,8 @@
 			$schedules['twohours'] = array('interval' => 120*60, 'display' => __('Two Hours'));
 			$schedules['fourhours'] = array('interval' => 240*60, 'display' => __('Four Hours'));
 			$schedules['eighthours'] = array('interval' => 480*60, 'display' => __('Eight Hours'));
+			$schedules['twodays'] = array('interval' => 2880*60, 'display' => __('Two days'));
+			$schedules['weekly'] = array('interval' => 10080*60, 'display' => __('Weekly'));
 			return $schedules;
 		}
 
@@ -304,7 +306,7 @@
 		
 			global $wpdb;
 			require_once("library/fewster_scan_library.php");
-			$updates = $this->get_updates();			
+			$updates = $this->get_updates();		
 
 			$library = new fewster_scan_library();
 			$root = $library->get_config_path();
@@ -333,7 +335,7 @@
 					$main .= "<p>" . $new . " file size changes have happened";
 				}
 				
-				$main .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check these files") . "</a></span></p></p>";
+				$main .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check \n these files") . "</a></span></p></p>";
 				
 				$changes = $this->site_check_overall();
 				if($changes!=""){
@@ -352,6 +354,14 @@
 								}
 								array_push($changes[$update[0]], $file);
 								unset($new_files[$index]);
+							}else{
+								if(strpos($file->file_path,str_replace("fewster/process/../../","",$update[1]))!==FALSE){
+									if(!isset($changes[$update[0]])){
+										$changes[$update[0]] = array();
+									}
+									array_push($changes[$update[0]], $file);
+									unset($new_files[$index]);
+								}
 							}
 						}
 					} else if(strpos($file->file_path,"wp-includes")!==FALSE){
@@ -428,7 +438,7 @@
 								$new_text .= "<p>" . __("This file has changed") . " " . $change_data[$file->file_path] . " " . __("times") . "</p>";							
 							}
 						}
-						$new_text .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-whitelist&file=" . $file->file_path) . "'>" . __("Whitelist this file") . "</a></span></p>";
+						$new_text .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-whitelist&file=" . $file->file_path) . "'>" . __("Whitelist file") . "</a></span></p>";
 					}
 				}
 				
@@ -451,7 +461,7 @@
 				$email .= "</td>";
 				$email .= "</tr>";
 				$email .= "</table>";
-				
+
 				add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
 				add_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
 				$address = explode(";", get_option("fewster_email"));
@@ -462,11 +472,11 @@
 				remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
 				
 				$wpdb->query("Update " . $wpdb->prefix . "fewster_notifications set notification_sent = 1 where file_change_type='size' and notification_sent = 0");
-
+			
 			}
 				
 		}
-		
+
 		function time_scan(){
 		
 			global $wpdb;
@@ -519,7 +529,16 @@
 								}
 								array_push($changes[$update[0]], $file);
 								unset($new_files[$index]);
+							}else{
+								if(strpos($file->file_path,str_replace("fewster/process/../../","",$update[1]))!==FALSE){
+									if(!isset($changes[$update[0]])){
+										$changes[$update[0]] = array();
+									}
+									array_push($changes[$update[0]], $file);
+									unset($new_files[$index]);
+								}
 							}
+
 						}
 					} else if(strpos($file->file_path,"wp-includes")!==FALSE){
 						if(!isset($changes[__("Core")])){
@@ -671,7 +690,16 @@
 								}
 								array_push($changes[$update[0]], $file);
 								unset($new_files[$index]);
+							}else{
+								if(strpos($file->file_path,str_replace("fewster/process/../../","",$update[1]))!==FALSE){
+									if(!isset($changes[$update[0]])){
+										$changes[$update[0]] = array();
+									}
+									array_push($changes[$update[0]], $file);
+									unset($new_files[$index]);
+								}
 							}
+
 						}
 					} else if(strpos($file->file_path,"wp-includes")!==FALSE){
 						if(!isset($changes[__("Core")])){
