@@ -27,9 +27,9 @@
 		}
 
 		function scripts(){
-			wp_enqueue_style( 'fewster_admin', plugins_url() . "/fewster/css/admin.css" );
-			wp_enqueue_script( 'fewster_menu_fix', plugins_url() . "/fewster/js/menu.js" );
-			wp_enqueue_script( 'fewster_accept', plugins_url() . "/fewster/js/accept.js" );
+			wp_enqueue_style( 'fewster_admin', plugin_dir_url(__FILE__) . "css/admin.css" );
+			wp_enqueue_script( 'fewster_menu_fix', plugin_dir_url(__FILE__) . "js/menu.js" );
+			wp_enqueue_script( 'fewster_accept', plugin_dir_url(__FILE__) . "js/accept.js" );
 			wp_localize_script( 'fewster_accept', 'fewster_accept', 
 																				array( 
 																						'ajaxURL' => site_url() . "/wp-admin/admin-ajax.php",

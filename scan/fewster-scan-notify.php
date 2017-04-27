@@ -9,7 +9,7 @@
 		}
 		
 		function scripts(){
-			wp_enqueue_style( 'fewster_admin', plugins_url() . "/fewster/css/admin.css" );
+			wp_enqueue_style( 'fewster_admin', plugin_dir_url(__FILE__) . "css/admin.css" );
 		}
 	
 		function menu_create(){
