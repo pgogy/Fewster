@@ -6,7 +6,7 @@ function fewster_accept_scan(){
 	};
 		
 	jQuery.post(fewster_accept.ajaxURL, data, function(response) {
-			alert(response);	
+			alert(response);
 		}
 	);
 }
