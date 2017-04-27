@@ -116,7 +116,7 @@
 			if(wp_verify_nonce($_POST['nonce'],"fewster_accept")){
 				update_option("fewster_plugin_integrity",true);
 				update_option("fewster_core_integrity",true);
-				echo __("Results accepted. Now scan your site");	
+				echo __("Current state of site accepted.");	
 			}
 			die();
 		}		
