@@ -3,18 +3,20 @@
 	class fewster_admin_notices{
 	
 		function __construct(){
-			$this->output = "";
-			$this->scan = true;
-			$this->integrity = true;
-			$this->register = true;
-			$this->new_theme = false;
-			$this->new_plugin = false;
-			if(isset($_GET['page'])){
-				if(strpos($_GET['page'],"fewster")===FALSE){
+			if(get_option("fewster_quiet_mode")!="on"){
+				$this->output = "";
+				$this->scan = true;
+				$this->integrity = true;
+				$this->register = true;
+				$this->new_theme = false;
+				$this->new_plugin = false;
+				if(isset($_GET['page'])){
+					if(strpos($_GET['page'],"fewster")===FALSE){
+						add_action("admin_notices", array($this, "notices"));
+					}
+				}else{
 					add_action("admin_notices", array($this, "notices"));
 				}
-			}else{
-				add_action("admin_notices", array($this, "notices"));
 			}
 		}
 	
