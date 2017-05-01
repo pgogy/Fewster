@@ -15,11 +15,14 @@ class fewster_settings{
 		$time_schedule = false;
 		
 		if(isset($_GET['page'])){
+		
 			if($_GET['page']=="fewster-settings"){
+		
 				$crons = _get_cron_array();
 				$new = get_option("fewster_new_file");
 				$size = get_option("fewster_size_file");
 				$time = get_option("fewster_time_file");
+				
 				foreach($crons as $timestamp => $job){
 		
 					if(isset($job['fewster_new_scan'])){
@@ -108,14 +111,32 @@ class fewster_settings{
 			'fewster_setting_section'
 		);
 		
+		add_settings_field(
+			'fewster_quiet_mode',
+			'Suppress all admin notices',
+			array($this,'quiet_mode_function'),
+			'fewster-settings',
+			'fewster_setting_section'
+		);
+		
+		add_settings_field(
+			'fewster_installatron_ignore',
+			'Suppress warnings for installatron files',
+			array($this,'installatron_ignore_function'),
+			'fewster-settings',
+			'fewster_setting_section'
+		);
+		
 		register_setting( 'fewster-settings', 'fewster_email' );
 		register_setting( 'fewster-settings', 'fewster_new_file' );
 		register_setting( 'fewster-settings', 'fewster_size_file' );
 		register_setting( 'fewster-settings', 'fewster_time_file' );
+		register_setting( 'fewster-settings', 'fewster_quiet_mode' );
+		register_setting( 'fewster-settings', 'fewster_installatron_ignore' );
 	}
  
 	function fewster_intro_function() {
-		echo '<p>' . __("This page is where you can configure Fewster") . '</p>';
+		echo '<p>' . __("This page is where you can configure Fewster Anti-bad") . '</p>';
 	}
  
 	function email_function() {
@@ -274,6 +295,28 @@ class fewster_settings{
 		}
 		echo ">" . __("Never") . "</option>";
 		echo "</select>";
+	}
+	
+	function quiet_mode_function() {
+		echo "<p>" . __("Checking this box will suppress all admin notices - the white boxes at the top of various pages") . "</p>";
+		$checked = "";
+		$checked = get_option("fewster_quiet_mode");
+		echo '<input name="fewster_quiet_mode" id="fewster_quiet_mode" type="checkbox" value="on" ';
+		if($checked!=""){
+			echo "checked ";
+		}
+		echo '/>';
+	}
+	
+	function installatron_ignore_function() {
+		echo "<p>" . __("Checking this box will ignore files created by Installatron which sometimes lead to false positives") . "</p>";
+		$checked = "";
+		$checked = get_option("fewster_installatron_ignore");
+		echo '<input name="fewster_installatron_ignore" id="fewster_installatron_ignore" type="checkbox" value="on" ';
+		if($checked!=""){
+			echo "checked ";
+		}
+		echo ' />';
 	}
 
 	function options_page() {
