@@ -9,6 +9,10 @@
 			if(!is_array($this->whitelist)){
 				$this->whitelist = array();
 			}
+			$this->installatron_ignore = FALSE;
+			if(get_option("fewster_installatron_ignore")=="on"){
+				$this->installatron_ignore = TRUE;
+			}
 		}
 	
 		function update_core(){
@@ -511,11 +515,21 @@
 		}
 		
 		function get_data_compare($file){
-			return array(
-							"name" => $file, 
-							"size" => filesize($file),
-							"time" => filemtime($file), 
-						);
+			if(!$this->installatron_ignore){
+				return array(
+								"name" => $file, 
+								"size" => filesize($file),
+								"time" => filemtime($file), 
+							);
+			}else{
+				if(strpos($file,"deleteme.")!==FALSE && strpos(file_get_contents($file),"license: http://installatron.com/plugin/eula")!==FALSE){
+					return array(
+								"name" => $file, 
+								"size" => filesize($file),
+								"time" => filemtime($file), 
+							);
+				}
+			}
 		}
 	
 		function recurse($main, $command, &$files){
