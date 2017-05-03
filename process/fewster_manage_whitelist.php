@@ -39,17 +39,21 @@
 	
 			}
 			?>
-			<p><?PHP echo __("These files are in the whitelist. Tick the checkbox to remove them"); ?>?</p>
 			<form action="" method="POST">
 				<input type="hidden" name="fewster_file" value="fewster_file" />
 				<?PHP
 					$whitelist = get_option("fewster_whitelist");
-					foreach($whitelist as $index => $file){
-						?><p><input type="checkbox" name="<?PHP echo $file; ?>" value="remove" /><?PHP echo $file . "</p>";
+					if($whitelist!=FALSE){
+						?><p><?PHP echo __("These files are in the whitelist. Tick the checkbox to remove them"); ?>?</p><?PHP
+						foreach($whitelist as $index => $file){
+							?><p><input type="checkbox" name="<?PHP echo $file; ?>" value="remove" /><?PHP echo $file . "</p>";
+						}	
+						?><input type="submit" class="button-primary" value="<?php _e('Remove from Whitelist') ?>" /><?PHP
+						echo wp_nonce_field("fewster_repair","fewster_repair"); 
+					}else{
+						?><p><?PHP echo __("No files have been whitelisted"); ?></p><?PHP
 					}
 				?>
-				<input type="submit" class="button-primary" value="<?php _e('Remove from Whitelist') ?>" />
-				<?PHP echo wp_nonce_field("fewster_repair","fewster_repair"); ?>
 			</form>
 			<?PHP
 		}
