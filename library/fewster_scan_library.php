@@ -522,7 +522,7 @@
 								"time" => filemtime($file), 
 							);
 			}else{
-				if(strpos($file,"deleteme.")!==FALSE && strpos(file_get_contents($file),"license: http://installatron.com/plugin/eula")!==FALSE){
+				if(strpos($file,"deleteme.")===FALSE && strpos(file_get_contents($file),"license: http://installatron.com/plugin/eula")===FALSE){	
 					return array(
 								"name" => $file, 
 								"size" => filesize($file),
