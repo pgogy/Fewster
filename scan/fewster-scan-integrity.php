@@ -11,8 +11,8 @@
 		function scripts(){
 			if(isset($_GET['page'])){
 				if($_GET['page']=="fewster-scan-integrity-change"){
-					wp_enqueue_script( 'fewster-select', plugin_dir_url(__FILE__) . 'js/select.js', array( 'jquery' ) );
-					wp_enqueue_script( 'fewster-integrity', plugin_dir_url(__FILE__) . 'js/integrity-check.js', array( 'jquery' ) );
+					wp_enqueue_script( 'fewster-select', plugin_dir_url(dirname(__FILE__) . "/../fewster.php") . 'js/select.js', array( 'jquery' ) );
+					wp_enqueue_script( 'fewster-integrity', plugin_dir_url(dirname(__FILE__) . "/../fewster.php") . 'js/integrity-check.js', array( 'jquery' ) );
 					wp_localize_script( 'fewster-integrity', 'fewster_select', 
 																					array( 
 																							'ajaxURL' => admin_url("admin-ajax.php"),
