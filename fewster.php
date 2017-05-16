@@ -182,6 +182,71 @@
 
 		}
 		
+		function get_current(){
+			
+			require_once(dirname(__FILE__) . "/../../../wp-admin/includes/plugin.php");
+			
+			$this->updates = array();
+			
+			global $wpdb;
+			
+			$output = "";
+			
+			$base = dirname(__FILE__) . "/../";
+
+			$dir = opendir($base);
+			while($file = readdir($dir)){
+				if($file!="."&&$file!=".."){
+					if(is_dir($base . "/" . $file)){
+						$inner_dir = opendir($base . "/" . $file);
+						while($inner_file = readdir($inner_dir)){
+							if($inner_file!="."&&$inner_file!=".."){
+								if(!is_dir($base . $file . "/" . $inner_file)){
+									$data = get_plugin_data($base . $file . "/" . $inner_file);
+									if($data['Name']!=""){
+										$result = $wpdb->get_row("select * from " . $wpdb->prefix . "fewster_site_info where path ='" . str_replace("\\","/",$base . $file . "/" . $inner_file) . "'");
+										if($result==null){
+											$result = $wpdb->get_row("select * from " . $wpdb->prefix . "fewster_site_info where path ='" . str_replace("/../","/process/../../",str_replace("\\","/",$base . $file . "/" . $inner_file)) . "'");
+										}
+										$this->updates[] = array($data['Name'], $data['Version'], $result->version);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			$path = get_template_directory();
+			$parts = explode("/", $path);
+			array_pop($parts);
+			$base = implode("/", $parts);
+			
+			$dir = opendir($base);
+			while($file = readdir($dir)){
+				if($file!="."&&$file!=".."){
+					if(is_dir($base . "/" . $file)){
+						$data = wp_get_theme($file);
+						if($data['Name']!=""){
+							$result = $wpdb->get_row("select * from " . $wpdb->prefix . "fewster_site_info where path ='" . str_replace("\\","/",$base . "/" . $file) . "'");
+							if(!$result){
+								$this->updates[] = array($data['Name'], $data['Version'], $result->version);
+							}
+						}
+					}
+				}
+			}
+			
+			global $wp_version;
+			
+			$result = $wpdb->get_row("select * from " . $wpdb->prefix . "fewster_site_info where name ='WordPress'");
+			
+			$this->updates[] = array("WordPress Core", $wp_version, $result->version);
+			
+			return $this->updates;
+			
+		}
+		
 		function get_updates(){
 			
 			require_once(dirname(__FILE__) . "/../../../wp-admin/includes/plugin.php");
@@ -192,7 +257,7 @@
 			
 			$output = "";
 			
-			$base = dirname(__FILE__) . "/../../";
+			$base = dirname(__FILE__) . "/../";
 
 			$dir = opendir($base);
 			while($file = readdir($dir)){
@@ -307,6 +372,7 @@
 			global $wpdb;
 			require_once("library/fewster_scan_library.php");
 			$updates = $this->get_updates();		
+			$current_data = $this->get_current();
 
 			$library = new fewster_scan_library();
 			$root = $library->get_config_path();
@@ -333,6 +399,12 @@
 					$main .= "<p>" . $new . " file size changes have happened";
 				}else{
 					$main .= "<p>" . $new . " file size changes have happened";
+				}
+				
+				$current = "<tr><h3>" . __("Current core status, themes and plugins") . "</h3></tr>";
+				$current .= "<tr><td>" . __("Name") . "</td><td>" . __("Version number known to Fewster") . "</td><td>" . __("Installed version number") . "</td></tr>";
+				foreach($current_data as $data){
+					$current .= "<tr><td>" . $data[0] . "</td><td>" . $data[1] . "</td><td>" . $data[2] . "</td></tr>";
 				}
 				
 				$main .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check \n these files") . "</a></span></p></p>";
@@ -449,6 +521,7 @@
 				$email .= "<tr>";
 				$email .= "<td>" . $main . "</td>";
 				$email .= "</tr>";
+				$email .= $current;
 				$email .= "<tr>";
 				$email .= "<td width='50%'>" . $new_text . $core . $p_and_t . "</td>";
 				$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
@@ -482,6 +555,7 @@
 			global $wpdb;
 			require_once("library/fewster_scan_library.php");
 			$updates = $this->get_updates();
+			$current_data = $this->get_current();
 			
 			$library = new fewster_scan_library();
 			$root = $library->get_config_path();
@@ -508,6 +582,12 @@
 					$main .= "<p>" . $new . " time stamp changes have happened";
 				}else{
 					$main .= "<p>" . $new . " time stamp changes have happened";
+				}
+				
+				$current = "<tr><h3>" . __("Current core status, themes and plugins") . "</h3></tr>";
+				$current .= "<tr><td>" . __("Name") . "</td><td>" . __("Version number known to Fewster") . "</td><td>" . __("Installed version number") . "</td></tr>";
+				foreach($current_data as $data){
+					$current .= "<tr><td>" . $data[0] . "</td><td>" . $data[1] . "</td><td>" . $data[2] . "</td></tr>";
 				}
 				
 				$main .= "<p><span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check new files") . "</a></span></p></p>";
@@ -613,6 +693,7 @@
 				$email .= "<tr>";
 				$email .= "<td>" . $main . "</td>";
 				$email .= "</tr>";
+				$email .= $current;
 				$email .= "<tr>";
 				$email .= "<td width='50%'>" . $new_text . $core . $p_and_t . "</td>";
 				$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
@@ -646,6 +727,7 @@
 			global $wpdb;
 			require_once("library/fewster_scan_library.php");
 			$updates = $this->get_updates();
+			$current_data = $this->get_current();
 			
 			$library = new fewster_scan_library();
 			$root = $library->get_config_path();
@@ -669,6 +751,12 @@
 					$main .= "<p>" . $new . " new files exist";
 				}else{
 					$main .= "<p>" . $new . " new file exists";
+				}
+				
+				$current = "<tr><h3>" . __("Current core status, themes and plugins") . "</h3></tr>";
+				$current .= "<tr><td>" . __("Name") . "</td><td>" . __("Version number known to Fewster") . "</td><td>" . __("Installed version number") . "</td></tr>";
+				foreach($current_data as $data){
+					$current .= "<tr><td>" . $data[0] . "</td><td>" . $data[1] . "</td><td>" . $data[2] . "</td></tr>";
 				}
 				
 				$main .= "<span style='padding-left:20px'><a style='background:#66f; color:#fff; border:1px solid #fff; padding:10px; text-decoration:none; -webkit-border-radius: 10px; -moz-border-radius: 10px; border-radius: 10px;' href='" . admin_url("admin.php?page=fewster-scan-integrity-change") . "'>" . __("Integrity check new files") . "</a></span></p>";
@@ -765,6 +853,7 @@
 				$email .= "<tr>";
 				$email .= "<td>" . $main . "</td>";
 				$email .= "</tr>";
+				$email .= $current;
 				$email .= "<tr>";
 				$email .= "<td width='50%'>" . $new_text . $core . $p_and_t . "</td>";
 				$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
@@ -784,6 +873,7 @@
 				foreach($address as $recipient){
 					wp_mail($recipient, __("Fewster Report for") . " " . get_bloginfo("name") . " : " . $total . " " . __("new files detected"), $email);
 				}
+				
 				remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
 				remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
 				
