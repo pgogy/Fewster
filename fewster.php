@@ -208,7 +208,7 @@
 										if($result==null){
 											$result = $wpdb->get_row("select * from " . $wpdb->prefix . "fewster_site_info where path ='" . str_replace("/../","/process/../../",str_replace("\\","/",$base . $file . "/" . $inner_file)) . "'");
 										}
-										$this->updates[] = array($data['Name'], $data['Version'], $result->version);
+										$this->updates[] = array(__("Plugin") . " : " . $data['Name'], $data['Version'], $result->version);
 									}
 								}
 							}
@@ -229,9 +229,10 @@
 						$data = wp_get_theme($file);
 						if($data['Name']!=""){
 							$result = $wpdb->get_row("select * from " . $wpdb->prefix . "fewster_site_info where path ='" . str_replace("\\","/",$base . "/" . $file) . "'");
-							if(!$result){
-								$this->updates[] = array($data['Name'], $data['Version'], $result->version);
+							if($result==null){
+								$result = $wpdb->get_row("select * from " . $wpdb->prefix . "fewster_site_info where path ='" . str_replace("/../","/process/../../",str_replace("\\","/",$base . $file . "/" . $inner_file)) . "'");
 							}
+							$this->updates[] = array(__("Theme") . " : " . $data['Name'], $data['Version'], $result->version);
 						}
 					}
 				}
@@ -402,7 +403,7 @@
 				}
 				
 				$current = "<tr><h3>" . __("Current core status, themes and plugins") . "</h3></tr>";
-				$current .= "<tr><td>" . __("Name") . "</td><td>" . __("Version number known to Fewster") . "</td><td>" . __("Installed version number") . "</td></tr>";
+				$current .= "<tr><td>" . __("Name") . "</td><td>" . __("Installed version") . "</td><td>" . __("Version number known to Fewster") . "</td></tr>";
 				foreach($current_data as $data){
 					$current .= "<tr><td>" . $data[0] . "</td><td>" . $data[1] . "</td><td>" . $data[2] . "</td></tr>";
 				}
@@ -585,7 +586,7 @@
 				}
 				
 				$current = "<tr><h3>" . __("Current core status, themes and plugins") . "</h3></tr>";
-				$current .= "<tr><td>" . __("Name") . "</td><td>" . __("Version number known to Fewster") . "</td><td>" . __("Installed version number") . "</td></tr>";
+				$current .= "<tr><td>" . __("Name") . "</td><td>" . __("Installed version number") . "</td><td>" . __("Version number known to Fewster") . "</td></tr>";
 				foreach($current_data as $data){
 					$current .= "<tr><td>" . $data[0] . "</td><td>" . $data[1] . "</td><td>" . $data[2] . "</td></tr>";
 				}
@@ -754,7 +755,7 @@
 				}
 				
 				$current = "<tr><h3>" . __("Current core status, themes and plugins") . "</h3></tr>";
-				$current .= "<tr><td>" . __("Name") . "</td><td>" . __("Version number known to Fewster") . "</td><td>" . __("Installed version number") . "</td></tr>";
+				$current .= "<tr><td>" . __("Name") . "</td><td>" . __("Installed version number") . "</td><td>" . __("Version number known to Fewster") . "</td></tr>";
 				foreach($current_data as $data){
 					$current .= "<tr><td>" . $data[0] . "</td><td>" . $data[1] . "</td><td>" . $data[2] . "</td></tr>";
 				}
