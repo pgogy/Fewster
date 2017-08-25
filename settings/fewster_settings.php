@@ -127,12 +127,21 @@ class fewster_settings{
 			'fewster_setting_section'
 		);
 		
+		add_settings_field(
+			'fewster_no_bad_news',
+			'Don\'t send an email when no bad things are found',
+			array($this,'no_bad_news_function'),
+			'fewster-settings',
+			'fewster_setting_section'
+		);
+		
 		register_setting( 'fewster-settings', 'fewster_email' );
 		register_setting( 'fewster-settings', 'fewster_new_file' );
 		register_setting( 'fewster-settings', 'fewster_size_file' );
 		register_setting( 'fewster-settings', 'fewster_time_file' );
 		register_setting( 'fewster-settings', 'fewster_quiet_mode' );
 		register_setting( 'fewster-settings', 'fewster_installatron_ignore' );
+		register_setting( 'fewster-settings', 'fewster_no_bad_news' );
 	}
  
 	function fewster_intro_function() {
@@ -313,6 +322,17 @@ class fewster_settings{
 		$checked = "";
 		$checked = get_option("fewster_installatron_ignore");
 		echo '<input name="fewster_installatron_ignore" id="fewster_installatron_ignore" type="checkbox" value="on" ';
+		if($checked!=""){
+			echo "checked ";
+		}
+		echo ' />';
+	}
+	
+	function no_bad_news_function() {
+		echo "<p>" . __("Checking this box will mean Fewster won't email unless a change is detected which Fewster can't explain.") . "</p>";
+		$checked = "";
+		$checked = get_option("fewster_no_bad_news");
+		echo '<input name="fewster_no_bad_news" id="fewster_no_bad_news" type="checkbox" value="on" ';
 		if($checked!=""){
 			echo "checked ";
 		}

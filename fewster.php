@@ -427,14 +427,18 @@
 								}
 								array_push($changes[$update[0]], $file);
 								unset($new_files[$index]);
-							}else{
-								if(strpos($file->file_path,str_replace("fewster/process/../../","",$update[1]))!==FALSE){
-									if(!isset($changes[$update[0]])){
-										$changes[$update[0]] = array();
-									}
-									array_push($changes[$update[0]], $file);
-									unset($new_files[$index]);
+							}else if(strpos($file->file_path,str_replace("fewster/process/../../","",$update[1]))!==FALSE){
+								if(!isset($changes[$update[0]])){
+									$changes[$update[0]] = array();
 								}
+								array_push($changes[$update[0]], $file);
+								unset($new_files[$index]);							
+							}else if(strpos($file->file_path,str_replace("fewster/../","",$update[1]))!==FALSE){
+								if(!isset($changes[$update[0]])){
+									$changes[$update[0]] = array();
+								}
+								array_push($changes[$update[0]], $file);
+								unset($new_files[$index]);
 							}
 						}
 					} else if(strpos($file->file_path,"wp-includes")!==FALSE){
@@ -515,36 +519,50 @@
 					}
 				}
 				
-				$email = "<table>";
-				$email .= "<tr>";
-				$email .= "<td>" . $changesEmail . "</td>";
-				$email .= "</tr>";				
-				$email .= "<tr>";
-				$email .= "<td>" . $main . "</td>";
-				$email .= "</tr>";
-				$email .= $current;
-				$email .= "<tr>";
-				$email .= "<td width='50%'>" . $new_text . $core . $p_and_t . "</td>";
-				$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
-				$email .= "</tr>";
-				$email .= "<tr>";
-				$email .= "<td><h3>" . __("All changes") . "</h3>";
-				foreach($list as $file){
-					$email .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";	
-				}
-				$email .= "</td>";
-				$email .= "</tr>";
-				$email .= "</table>";
-
-				add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-				add_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
-				$address = explode(";", get_option("fewster_email"));
-				foreach($address as $recipient){
-					wp_mail($recipient, __("Fewster Report for") . " " . get_bloginfo("name") . " : " . $total . " " . __("file size changes detected"), $email);
-				}
-				remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-				remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+				$sendEmail = false;
 				
+				if($new_text != ""){
+					$sendEmail = true;
+				}else{
+					if(get_option("fewster_no_bad_news")!="on"){
+						$sendEmail = true;
+					}				
+				}
+				
+				if($sendEmail){
+		
+					$email = "<table>";
+					$email .= "<tr>";
+					$email .= "<td>" . $changesEmail . "</td>";
+					$email .= "</tr>";				
+					$email .= "<tr>";
+					$email .= "<td>" . $main . "</td>";
+					$email .= "</tr>";
+					$email .= $current;
+					$email .= "<tr>";
+					$email .= "<td width='50%'>" . $new_text . $core . $p_and_t . "</td>";
+					$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
+					$email .= "</tr>";
+					$email .= "<tr>";
+					$email .= "<td><h3>" . __("All changes") . "</h3>";
+					foreach($list as $file){
+						$email .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";	
+					}
+					$email .= "</td>";
+					$email .= "</tr>";
+					$email .= "</table>";
+
+					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					add_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+					$address = explode(";", get_option("fewster_email"));
+					foreach($address as $recipient){
+						wp_mail($recipient, __("Fewster Report for") . " " . get_bloginfo("name") . " : " . $total . " " . __("file size changes detected"), $email);
+					}
+					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+					
+				}
+			
 				$wpdb->query("Update " . $wpdb->prefix . "fewster_notifications set notification_sent = 1 where file_change_type='size' and notification_sent = 0");
 			
 			}
@@ -610,14 +628,18 @@
 								}
 								array_push($changes[$update[0]], $file);
 								unset($new_files[$index]);
-							}else{
-								if(strpos($file->file_path,str_replace("fewster/process/../../","",$update[1]))!==FALSE){
-									if(!isset($changes[$update[0]])){
-										$changes[$update[0]] = array();
-									}
-									array_push($changes[$update[0]], $file);
-									unset($new_files[$index]);
+							}else if(strpos($file->file_path,str_replace("fewster/process/../../","",$update[1]))!==FALSE){
+								if(!isset($changes[$update[0]])){
+									$changes[$update[0]] = array();
 								}
+								array_push($changes[$update[0]], $file);
+								unset($new_files[$index]);
+							}else if(strpos($file->file_path,str_replace("fewster/../","",$update[1]))!==FALSE){
+								if(!isset($changes[$update[0]])){
+									$changes[$update[0]] = array();
+								}
+								array_push($changes[$update[0]], $file);
+								unset($new_files[$index]);
 							}
 
 						}
@@ -690,34 +712,50 @@
 					}
 				}
 				
-				$email = "<table>";
-				$email .= "<tr>";
-				$email .= "<td>" . $main . "</td>";
-				$email .= "</tr>";
-				$email .= $current;
-				$email .= "<tr>";
-				$email .= "<td width='50%'>" . $new_text . $core . $p_and_t . "</td>";
-				$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
-				$email .= "</tr>";				
-				$email .= "<tr>";
-				$email .= "<td><h3>" . __("All changes") . "</h3>";
-				foreach($list as $file){
-					$email .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";	
-				}
-				$email .= "</td>";
-				$email .= "</tr>";
-				$email .= "</table>";
+				$sendEmail = false;
 				
-				add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-				add_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
-				$address = explode(";", get_option("fewster_email"));
-				foreach($address as $recipient){
-					wp_mail($recipient, __("Fewster Report for") . " " . get_bloginfo("name") . " : " . $total . " " . __("time stamp changes detected"), $email);
+				if($new_text != ""){
+					$sendEmail = true;
+				}else{
+					if(get_option("fewster_no_bad_news")!="on"){
+						$sendEmail = true;
+					}				
 				}
-				remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-				remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+				
+				if($sendEmail){
+			
+					$email = "<table>";
+					$email .= "<tr>";
+					$email .= "<td>" . $main . "</td>";
+					$email .= "</tr>";
+					$email .= $current;
+					$email .= "<tr>";
+					$email .= "<td width='50%'>" . $new_text . $core . $p_and_t . "</td>";
+					$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
+					$email .= "</tr>";				
+					$email .= "<tr>";
+					$email .= "<td><h3>" . __("All changes") . "</h3>";
+					foreach($list as $file){
+						$email .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";	
+					}
+					$email .= "</td>";
+					$email .= "</tr>";
+					$email .= "</table>";
+					
+					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					add_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+					$address = explode(";", get_option("fewster_email"));
+					foreach($address as $recipient){
+						wp_mail($recipient, __("Fewster Report for") . " " . get_bloginfo("name") . " : " . $total . " " . __("time stamp changes detected"), $email);
+					}
+					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+			
+				}
 			
 				$wpdb->query("Update " . $wpdb->prefix . "fewster_notifications set notification_sent = 1 where file_change_type='time' and notification_sent = 0");
+			
+				
 			
 			}
 				
@@ -773,20 +811,25 @@
 				foreach($new_files as $index => $file){
 					if(strpos($file->file_path,"wp-content")!==FALSE){
 						foreach($updates as $update){
+							echo $file->file_path . " " . $update[1] . "<br />";
 							if(strpos($file->file_path,$update[1])!==FALSE){
 								if(!isset($changes[$update[0]])){
 									$changes[$update[0]] = array();
 								}
 								array_push($changes[$update[0]], $file);
 								unset($new_files[$index]);
-							}else{
-								if(strpos($file->file_path,str_replace("fewster/process/../../","",$update[1]))!==FALSE){
-									if(!isset($changes[$update[0]])){
+							}else if(strpos($file->file_path,str_replace("fewster/process/../../","",$update[1]))!==FALSE){
+								if(!isset($changes[$update[0]])){
 										$changes[$update[0]] = array();
-									}
-									array_push($changes[$update[0]], $file);
-									unset($new_files[$index]);
 								}
+								array_push($changes[$update[0]], $file);
+								unset($new_files[$index]);
+							}else if(strpos($file->file_path,str_replace("fewster/../","",$update[1]))!==FALSE){
+								if(!isset($changes[$update[0]])){
+									$changes[$update[0]] = array();
+								}
+								array_push($changes[$update[0]], $file);
+								unset($new_files[$index]);
 							}
 
 						}
@@ -850,34 +893,48 @@
 					}
 				}
 				
-				$email = "<table>";
-				$email .= "<tr>";
-				$email .= "<td>" . $main . "</td>";
-				$email .= "</tr>";
-				$email .= $current;
-				$email .= "<tr>";
-				$email .= "<td width='50%'>" . $new_text . $core . $p_and_t . "</td>";
-				$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
-				$email .= "</tr>";				
-				$email .= "<tr>";
-				$email .= "<td><h3>" . __("All changes") . "</h3>";
-				foreach($list as $file){
-					$email .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";	
-				}
-				$email .= "</td>";
-				$email .= "</tr>";
-				$email .= "</table>";
+				$sendEmail = false;
 				
-				add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-				add_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
-				$address = explode(";", get_option("fewster_email"));
-				foreach($address as $recipient){
-					wp_mail($recipient, __("Fewster Report for") . " " . get_bloginfo("name") . " : " . $total . " " . __("new files detected"), $email);
+				if($new_text != ""){
+					$sendEmail = true;
+				}else{
+					if(get_option("fewster_no_bad_news")!="on"){
+						$sendEmail = true;
+					}				
 				}
 				
-				remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
-				remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
-				
+				if($sendEmail){
+		
+					$email = "<table>";
+					$email .= "<tr>";
+					$email .= "<td>" . $main . "</td>";
+					$email .= "</tr>";
+					$email .= $current;
+					$email .= "<tr>";
+					$email .= "<td width='50%'>" . $new_text . $core . $p_and_t . "</td>";
+					$email .= "<td width='45%' valign='top' style='padding-left:100px'>" . $major . "</td>";
+					$email .= "</tr>";				
+					$email .= "<tr>";
+					$email .= "<td><h3>" . __("All changes") . "</h3>";
+					foreach($list as $file){
+						$email .= "<p>" . $file->file_path . " " . __("modified on") . " " . date( "G:i:s l jS F" , filemtime($file->file_path)) . "</p>";	
+					}
+					$email .= "</td>";
+					$email .= "</tr>";
+					$email .= "</table>";
+					
+					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					add_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+					$address = explode(";", get_option("fewster_email"));
+					foreach($address as $recipient){
+						wp_mail($recipient, __("Fewster Report for") . " " . get_bloginfo("name") . " : " . $total . " " . __("new files detected"), $email);
+					}
+					
+					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+
+				}
+
 				$wpdb->query("Update " . $wpdb->prefix . "fewster_notifications set notification_sent = 1 where file_change_type='new' and notification_sent = 0");
 
 			}
