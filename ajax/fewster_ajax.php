@@ -250,17 +250,22 @@
 				$status = true;
 				$reason = "";
 
-				$current_lines = explode("\n", str_replace("\r", "\n", $local_file));
-				$remote_lines = explode("\n", $remote_file);
-				
+				require_once(dirname(__FILE__) . "/../library/class.Diff.php");
+				$diff = new FileDiff();					
+				$data = $diff->compare($local_file, $remote_file);
 				$counter = 0;
+				foreach ($data as $line){
 
-				for($x=0;$x<=count($current_lines);$x++){
-					if(strcmp(trim($current_lines[$x]),trim($remote_lines[$x]))!=0){
-						$reason = __("Different file content");
-						$status = false;
-						break;
+					switch ($line[1]){
+						case 0 : $reason .= "<p class='fewster_diff fewster_same'>" . htmlspecialchars($line[0]) . "</p>"; break;
+						case 1 : $reason .= "<p class='fewster_diff fewster_removed'> - " . htmlspecialchars($line[0]) . "</p>"; $counter++; break;
+						case 2 : $reason .= "<p class='fewster_diff fewster_added'> + " . htmlspecialchars($line[0]) . "</p>"; $counter++; break;
 					}
+
+				}
+				
+				if($counter!=0){
+					$status=false;
 				}
 
 			}

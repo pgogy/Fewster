@@ -66,9 +66,9 @@
 
 			}else{
 
-				$current_lines = explode("\n", str_replace("\r", "\n", $current));
-				$remote_lines = explode("\n", $remote_file_content);
-
+				$current_lines = explode("\n", str_replace("\r", "", $current));
+				$remote_lines = explode("\n", str_replace("\r", "\n", $remote_file_content));
+				
 				echo "<h3><strong>" . __("No diffs found - commencing deeper scan") . "</strong></h3>";
 
 				echo "<p>" . __("Number of lines in") . " " . str_replace($library->get_config_path(), "", $file) . " " . count($current_lines) . "</p>";
@@ -77,12 +77,14 @@
 				$counter = 0;
 
 				for($x=0;$x<=count($current_lines);$x++){
-					if(strcmp(trim($current_lines[$x]),trim($remote_lines[$x]))!=0){
-						echo "<p>" . __("Line number") . " " . $x . " " . strcmp($current_lines[$x],$remote_lines[$x]) . "</p>";
-						echo "<p class=''>" . __("Current file is") . " <pre>" . $current_lines[$x] . "</pre></p>";
-						echo "<p class=''>" . __("Remote file is") . " <pre>" . $remote_lines[$x] . "</pre></p>";
-						echo "<br />";
-						$counter++;
+					if(isset($current_lines[$x])&&isset($remote_lines[$x])){
+						if(strcmp(trim($current_lines[$x]),trim($remote_lines[$x]))!=0){
+							echo "<div><p>" . __("Line number") . " " . $x . " " . strcmp($current_lines[$x],$remote_lines[$x]) . "</p>";
+							echo "<p class=''>" . __("Current file is") . " <pre>" . $current_lines[$x] . "</pre></p>";
+							echo "<p class=''>" . __("Remote file is") . " <pre>" . $remote_lines[$x] . "</pre></p>";
+							echo "</div><hr />";
+							$counter++;
+						}
 					}
 				}
 
