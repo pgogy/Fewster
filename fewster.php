@@ -993,6 +993,7 @@
 	require_once("process/fewster_whitelist.php");
 	require_once("process/fewster_manage_whitelist.php");
 	require_once("process/fewster_diff.php");
+	require_once("process/fewster_r_diff.php");
 	require_once("process/fewster_add.php");
 	require_once("process/fewster_accept.php");
 	require_once("process/fewster_delete.php");
@@ -1007,5 +1008,6 @@
 	require_once("process/fewster_plugin_integrity_check.php");
 	require_once("process/fewster_theme_integrity_check.php");
 	require_once("process/fewster_menu.php");
+	require_once("process/fewster_super_quiet_mode.php");
 	require_once("scan/fewster-scan-integrity.php");	
 	require_once("scan/fewster-scan-notify.php");	
