@@ -77,6 +77,9 @@
 			wp_schedule_event(time(), 'eighthours', 'fewster_new_scan');
 			wp_schedule_event(time(), 'eighthours', 'fewster_size_scan');
 			wp_schedule_event(time(), 'eighthours', 'fewster_time_scan');
+			wp_schedule_event(time(), 'eighthours', 'fewster_eval_scan');
+			wp_schedule_event(time(), 'eighthours', 'fewster_error_log_scan');
+			wp_schedule_event(time(), 'hourly', 'fewster_addon_check_scan');
 		}
 		
 		function database_activation(){
@@ -941,6 +944,186 @@
 				
 		}
 		
+		function eval_scan(){
+		
+			require_once("library/fewster_scan_library.php");
+			
+			$library = new fewster_scan_library();
+			$root = $library->get_config_path();
+			$data = $library->scan_eval_code();
+
+			if($data[0] != 0){
+			
+				$email = "";
+				$main = "";
+				$major = "";
+				$core = "";
+				$p_and_t = "";
+				
+				$main = "<h2>" . $data[0] . " files have been scanned and have an eval command in</h2>";
+				
+				$sendEmail = false;
+				
+				if($data[2] != ""){
+					$sendEmail = true;
+				}
+				
+				if($sendEmail){
+		
+					$email = "<table>";
+					$email .= "<tr>";
+					$email .= "<td>" . $main . "</td>";
+					$email .= "</tr>";
+					$email .= "<td><h3>" . __("All files") . "</h3>";
+					$email .= $data[2];	
+					$email .= "</td>";
+					$email .= "</tr>";
+					$email .= "</table>";
+					
+					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					add_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+					$address = explode(";", get_option("fewster_email"));
+					foreach($address as $recipient){
+						wp_mail($recipient, __("Fewster Report for") . " " . get_bloginfo("name") . " : " . $total . " " . __("eval files detected"), $email);
+					}
+					
+					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+
+				}
+
+			}
+				
+		}
+		
+		function error_log_scan(){
+		
+			require_once("library/fewster_scan_library.php");
+			
+			$library = new fewster_scan_library();
+			$root = $library->get_config_path();
+			$data = $library->scan_error_log();
+			
+			if($data[0] != 0){
+			
+				$email = "";
+				$main = "";
+				$major = "";
+				$core = "";
+				$p_and_t = "";
+				
+				$main = "<h2>" . $data[0] . " error log files have been found</h2>";
+				
+				$sendEmail = false;
+				
+				if($data[2] != ""){
+					$sendEmail = true;
+				}
+				
+				if($sendEmail){
+		
+					$email = "<table>";
+					$email .= "<tr>";
+					$email .= "<td>" . $main . "</td>";
+					$email .= "</tr>";
+					$email .= "<td><h3>" . __("All files") . "</h3>";
+					$email .= $data[2];	
+					$email .= "</td>";
+					$email .= "</tr>";
+					$email .= "</table>";
+					
+					add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					add_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+					$address = explode(";", get_option("fewster_email"));
+					foreach($address as $recipient){
+						wp_mail($recipient, __("Fewster Report for") . " " . get_bloginfo("name") . " : " . $total . " " . __("error_log files detected"), $email);
+					}
+					
+					remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+					remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+
+				}
+
+			}
+				
+		}
+		
+		function addon_check_scan(){
+		
+			$counter++;
+			
+			require_once("library/fewster_remote_library.php");
+			
+			$remote = new fewster_remote_library();
+		
+			$plugins = get_plugins();
+			
+			$output = "";
+			
+			foreach($plugins as $index => $plugin){
+				$remote_data = $remote->get_plugin_data($index);
+				
+				if($remote_data[0]==0){
+					$counter++;
+					$output .= "<p>" . __("Plugin") . " : " . $plugin['Name'] . " " . __("is not on WordPress.org. This may mean it has been removed from the directory for security reasons.") . "</p>"; 
+				}else{
+					if($remote_data[1]!=$plugin['Version']){
+						$output .= "<p>" . __("Plugin") . " : " . $plugin['Name'] . " " . __("is not the latest version. The latest version is") . " " . $remote_data[1] . "</p>"; 
+						$counter++;
+					}
+				}
+			}
+		
+			$themes = wp_get_themes();
+			
+			foreach($themes as $index => $theme){
+				$remote_data = $remote->get_theme_data($index);
+				
+				$theme = wp_get_theme($index);
+				
+				if($remote_data[0]==0){
+					$counter++;
+					$output .= "<p>" . __("Theme") . " : " . $theme->get("Name") . " " . __("is not on WordPress.org. This may mean it has been removed from the directory for security reasons.") . "</p>"; 
+				}else{
+					if($remote_data[1]!=$theme->get('Version')){
+						$counter++;
+						$output .= "<p>" . __("Theme") . " : " . $theme->get("Name") . " " . __("is not the latest version. The latest version is") . " " . $remote_data[1] . "</p>"; 
+					}
+				}
+					
+			}
+			
+			if($output!=""){
+			
+				$email = "";
+				
+				$main = "<h2>" . $counter . " plugin and theme issues have been found</h2>";
+				
+				$email = "<table>";
+				$email .= "<tr>";
+				$email .= "<td>" . $main . "</td>";
+				$email .= "</tr>";
+				$email .= "<td><h3>" . __("All issues") . "</h3>";
+				$email .= $output;	
+				$email .= "</td>";
+				$email .= "</tr>";
+				$email .= "</table>";
+				
+				add_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+				add_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+				$address = explode(";", get_option("fewster_email"));
+				foreach($address as $recipient){
+					wp_mail($recipient, __("Fewster Report for") . " " . get_bloginfo("name") . " : " . $total . " " . __("plugin and theme issues detected"), $email);
+				}
+				
+				remove_filter( 'wp_mail_content_type', array($this, 'set_content_type') );
+				remove_filter( 'wp_mail_from_name', array($this, 'set_from_name') );
+
+			}
+
+		} 
+
+		
 		function site_check_overall(){
 			require_once(dirname(__FILE__) . "/process/fewster_admin_notices.php");
 			$fewster_admin_notices = new fewster_admin_notices();
@@ -1009,5 +1192,9 @@
 	require_once("process/fewster_theme_integrity_check.php");
 	require_once("process/fewster_menu.php");
 	require_once("process/fewster_super_quiet_mode.php");
+	require_once("process/fewster_hide_plugin.php");
 	require_once("scan/fewster-scan-integrity.php");	
 	require_once("scan/fewster-scan-notify.php");	
+	require_once("process/fewster_all_integrity.php");	
+	require_once("process/fewster_string_integrity.php");
+	require_once("process/fewster_image_check.php");

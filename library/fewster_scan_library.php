@@ -14,14 +14,40 @@
 				$this->installatron_ignore = TRUE;
 			}
 		}
-	
-		function update_core(){
 		
-			$dir = $this->get_config_path();
+		function all_files_list(){
+		
+			$this->dir = $this->get_config_path();
+
 			$files = array();
 			$this->counter = 0;
 			
-			$site_files = $this->recurse($dir, array($this, "get_data_first_core"), $files);
+			$site_files = $this->all_recurse($this->dir, array($this, "get_data_all_files"), $files);
+			
+			return $site_files[1];
+		
+		}
+		
+		function suspicious_files_list(){
+		
+			$this->dir = $this->get_config_path();			
+			$files = array();
+			$this->counter = 0;
+			
+			
+			$files = $this->all_recurse($this->dir, array($this, "get_data_compare_strings"), $files);
+			
+			return $files[1];
+			
+		}
+		
+		function update_core(){
+		
+			$this->dir = $this->get_config_path();
+			$files = array();
+			$this->counter = 0;
+			
+			$site_files = $this->recurse($this->dir, array($this, "get_data_first_core"), $files);
 			
 			return $site_files;
 		
@@ -29,7 +55,7 @@
 
 		function update_all(){
 		
-			$dir = $this->get_config_path();
+			$this->dir = $this->get_config_path();			
 			$files = array();
 			$changed_files = array();
 			$new_files = array();
@@ -38,7 +64,7 @@
 			global $wpdb;
 			
 			$db_files = $wpdb->get_results("select * from " . $wpdb->prefix . "fewster_file_info");
-			$site_files = $this->recurse($dir, array($this, "get_data_compare"), $files);
+			$site_files = $this->recurse($this->dir, array($this, "get_data_compare"), $files);
 			
 			foreach($site_files[1] as $file => $data){
 				$file_output = "<div class='fewster_file'><div class='fewster_file_name'>" . __("File") . " : " . $data['name'] . "</div>";
@@ -98,11 +124,11 @@
 
 		function plugin_files_list(){
 		
-			$dir = $this->get_config_path();
+			$this->dir = $this->get_config_path();			
 			$files = array();
 			$this->counter = 0;
 			
-			$site_files = $this->recurse($dir, array($this, "get_data_basic_plugins"), $files);
+			$site_files = $this->recurse($this->dir, array($this, "get_data_basic_plugins"), $files);
 			
 			return $site_files[1];
 		
@@ -110,25 +136,62 @@
 	
 		function core_files_list(){
 		
-			$dir = $this->get_config_path();
-			$files = array();
+			$this->dir = $this->get_config_path();			$files = array();
 			$this->counter = 0;
 			
-			$site_files = $this->recurse($dir, array($this, "get_data_basic_core"), $files);
+			$site_files = $this->recurse($this->dir, array($this, "get_data_basic_core"), $files);
 			
 			return $site_files[1];
 		
 		}
 		
+		function scan_eval_code(){
+		
+			$this->dir = $this->get_config_path();			
+			$files = array();
+			$this->counter = 0;
+			
+			$site_files = $this->recurse($this->dir, array($this, "get_data_eval_code"), $files);
+			$new_output = "";
+			$new = 0;
+			foreach($site_files[1] as $file => $data){
+				$file_output = "<p>" . __("File") . " : " . $data['name'] . "</p>";
+				$issue = false;
+				$new++;
+				$new_output .= "<p>" . $data['name'] . " " . __("has an eval command in. This is often a sign of a hacked site. The file was last updated on") . " " . date("Y-n-j G:i:s",$data['time']) . "</p>";
+			}
+			return array(count($site_files[1]),$new,$new_output);
+			
+		}
+		
+		function scan_error_log(){
+		
+			$this->dir = $this->get_config_path();			
+			$files = array();
+			$this->counter = 0;
+			
+			$site_files = $this->all_recurse($this->dir, array($this, "get_error_log"), $files);
+			$new_output = "";
+			$new = 0;
+			foreach($site_files[1] as $file => $data){
+				$file_output = "<p>" . __("File") . " : " . $data['name'] . "</p>";
+				$issue = false;
+				$new++;
+				$new_output .= "<p>" . $data['name'] . " " . __(" is an error file. This may mean the site has a problem. The file was last updated on") . " " . date("Y-n-j G:i:s",$data['time']) . "</p>";
+			}
+			return array(count($site_files[1]),$new,$new_output);
+			
+		}
+		
 		function scan_new_cron($paths){
 		
-			$dir = $this->get_config_path();
+			$this->dir = $this->get_config_path();			
 			$files = array();
 			$this->counter = 0;
 			
 			global $wpdb;
 			
-			$site_files = $this->recurse($dir, array($this, "get_data_compare"), $files);
+			$site_files = $this->recurse($this->dir, array($this, "get_data_compare"), $files);
 			$output = "";
 			$new_output = "";
 			$this->counter = 0;
@@ -151,13 +214,13 @@
 		}
 
 		function scan_size_cron($paths){
-			$dir = $this->get_config_path();
+			$this->dir = $this->get_config_path();			
 			$files = array();
 			$this->counter = 0;
 			
 			global $wpdb;
 			
-			$site_files = $this->recurse($dir, array($this, "get_data_compare"), $files);
+			$site_files = $this->recurse($this->dir, array($this, "get_data_compare"), $files);
 			$output = "";
 			$new_output = "";
 			$this->counter = 0;
@@ -187,13 +250,13 @@
 		}
 	
 		function scan_time_cron($paths){
-			$dir = $this->get_config_path();
+			$this->dir = $this->get_config_path();			
 			$files = array();
 			$this->counter = 0;
 			
 			global $wpdb;
 			
-			$site_files = $this->recurse($dir, array($this, "get_data_compare"), $files);
+			$site_files = $this->recurse($this->dir, array($this, "get_data_compare"), $files);
 			$output = "";
 			$new_output = "";
 			$this->counter = 0;
@@ -223,7 +286,7 @@
 	
 		function scan_notify_new(){
 		
-			$dir = $this->get_config_path();
+			$this->dir = $this->get_config_path();			
 			$files = array();
 			$this->counter = 0;
 			
@@ -231,7 +294,7 @@
 			
 			$db_files = $wpdb->get_results("select * from " . $wpdb->prefix . "fewster_file_info");
 			
-			$site_files = $this->recurse($dir, array($this, "get_data_compare"), $files);
+			$site_files = $this->recurse($this->dir, array($this, "get_data_compare"), $files);
 		
 			foreach($site_files[1] as $file => $data){
 
@@ -255,7 +318,7 @@
 
 		function scan_notify_time(){
 		
-			$dir = $this->get_config_path();
+			$this->dir = $this->get_config_path();			
 			$files = array();
 			$this->counter = 0;
 			
@@ -263,7 +326,7 @@
 			
 			$db_files = $wpdb->get_results("select * from " . $wpdb->prefix . "fewster_file_info");
 			
-			$site_files = $this->recurse($dir, array($this, "get_data_compare"), $files);
+			$site_files = $this->recurse($this->dir, array($this, "get_data_compare"), $files);
 		
 			foreach($site_files[1] as $file => $data){
 
@@ -290,7 +353,7 @@
 
 		function scan_notify_size(){
 		
-			$dir = $this->get_config_path();
+			$this->dir = $this->get_config_path();			
 			$files = array();
 			$this->counter = 0;
 			
@@ -298,7 +361,7 @@
 			
 			$db_files = $wpdb->get_results("select * from " . $wpdb->prefix . "fewster_file_info");
 			
-			$site_files = $this->recurse($dir, array($this, "get_data_compare"), $files);
+			$site_files = $this->recurse($this->dir, array($this, "get_data_compare"), $files);
 		
 			foreach($site_files[1] as $file => $data){
 
@@ -327,7 +390,7 @@
 		
 			echo "<h1>" . __("Fewster Scan new and changed files") . "</h2>";
 		
-			$dir = $this->get_config_path();
+			$this->dir = $this->get_config_path();			
 			$files = array();
 			$this->counter = 0;
 			
@@ -335,7 +398,7 @@
 			
 			$db_files = $wpdb->get_results("select * from " . $wpdb->prefix . "fewster_file_info");
 			
-			$site_files = $this->recurse($dir, array($this, "get_data_compare"), $files);
+			$site_files = $this->recurse($this->dir, array($this, "get_data_compare"), $files);
 			$output = "";
 			$new_output = "";
 			$this->counter = 0;
@@ -378,7 +441,7 @@
 		
 			echo "<h1>" . __("Fewster Scan") . "</h2>";
 		
-			$dir = $this->get_config_path();
+			$this->dir = $this->get_config_path();			
 			$files = array();
 			$this->counter = 0;
 			
@@ -386,7 +449,7 @@
 			
 			$db_files = $wpdb->get_results("select * from " . $wpdb->prefix . "fewster_file_info");
 			if(count($db_files)==0){
-				$site_files = $this->recurse($dir, array($this, "get_data_first"), $files);
+				$site_files = $this->recurse($this->dir, array($this, "get_data_first"), $files);
 				foreach($site_files[1] as $file => $data){
 					$response = $wpdb->query( 
 						$wpdb->prepare( 
@@ -396,7 +459,7 @@
 				}
 				echo "<p>" . count($site_files[1]) . "  " . __('Files scanned') . "</p>";	
 			}else{
-				$site_files = $this->recurse($dir, array($this, "get_data_compare"), $files);
+				$site_files = $this->recurse($this->dir, array($this, "get_data_compare"), $files);
 				$output = "";
 				$new_output = "";
 				$this->counter = 0;
@@ -443,6 +506,207 @@
 			}
 		
 		}
+		
+		function get_data_all_files($file){
+			return array(
+							"name" => $file, 
+							"size" => filesize($file),
+							"time" => filemtime($file), 
+							"zip" => $this->zip_data($file)
+						);
+		}
+		
+		
+		function get_data_compare_strings($file){
+			
+			$content = file_get_contents($file);
+		
+			$unicontent = preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', function ($match) {
+				return mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UCS-2BE');
+			}, $content);
+
+			$xcontent = preg_replace_callback("/(\\\\x)([0-9A-Fa-f]+)/u", function($matched) {
+				return chr(hexdec($matched[2]));
+			}, $content);
+		
+			if(strlen($content) != strlen($xcontent)){
+				return array(
+								"name" => $file,
+								"reason", "hexdec"
+							);
+			}
+			
+			preg_match_all("/\'[A-Za-z\%0-9\?\*\/\=]+\'/",
+			$content,
+			$out, PREG_PATTERN_ORDER);
+
+			foreach($out[0] as $line){
+				
+				$line = substr($line,1,strlen($line)-2);
+				
+				if ( base64_encode(base64_decode($line, true) ) === $line ){
+				   return array(
+								"name" => $file,
+								"line" => $line,
+								"64line" => base64_encode(base64_decode($line)),
+								"reason", "base64"
+							);
+				} 
+			}
+			
+			if(strpos($content,"eval(")!==FALSE){
+				return array(
+								"name" => $file,
+								"reason", "eval"
+							);
+			}
+			
+		}
+		
+		function get_images($file){
+			if(strpos($file,".jpg")!==FALSE||strpos($file,".gif")!==FALSE||strpos($file,".png")!==FALSE){
+				return array(
+							"name" => $file
+						);
+			}
+		}
+
+		function recurse($main, $command, &$files){
+			$dirHandle = opendir($main);
+			while($file = readdir($dirHandle)){
+				if($main!=$this->dir){
+					if(file_exists($main . "wp-config.php")){
+						if(file_exists($main . "wp-content")){
+							if(file_exists($main . "wp-admin")){
+								if(file_exists($main . "wp-includes")){
+									break;	
+								}
+							}
+						}
+					}
+				}
+				if(is_dir($main.$file."/") && $file != '.' && $file != '..'){
+					$this->recurse($main.$file."/", $command, $files);
+				}
+				else{
+					if(is_file($main . $file)){
+						if(strpos($file,".php")!==FALSE){
+							$this->counter++;
+							if(is_callable($command)){
+								if(!in_array($main . $file, $this->whitelist)){
+									$data = $command[0]->$command[1]($main . $file);
+									if(!is_array($data)){
+										if(trim($data)!=""){
+											array_push($files, trim($data));
+										}
+									}else{
+										array_push($files, $data);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			return array($this->counter, $files);
+		}
+
+		function all_recurse($main, $command, &$files){
+			$dirHandle = opendir($main);
+			while($file = readdir($dirHandle)){
+				if($main!=$this->dir){
+					if(file_exists($main . "wp-config.php")){
+						if(file_exists($main . "wp-content")){
+							if(file_exists($main . "wp-admin")){
+								if(file_exists($main . "wp-includes")){
+									break;	
+								}
+							}
+						}
+					}
+				}
+				if(is_dir($main.$file."/") && $file != '.' && $file != '..'){
+					$this->all_recurse($main.$file."/", $command, $files);
+				}
+				else{
+					if(is_file($main . $file)){
+						if(strpos($file,".jpg") ===FALSE && strpos($file,".png") ===FALSE && strpos($file,".gif") ===FALSE){
+							$this->counter++;
+							if(is_callable($command)){
+								if(!in_array($main . $file, $this->whitelist)){
+									$data = $command[0]->$command[1]($main . $file);
+									if(!is_array($data)){
+										if(trim($data)!=""){
+											array_push($files, trim($data));
+										}
+									}else{
+										array_push($files, $data);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			return array($this->counter, $files);
+		}
+
+		function image_recurse($main, $command, &$files){
+			$dirHandle = opendir($main);
+			while($file = readdir($dirHandle)){
+				if($main!=$this->dir){
+					if(file_exists($main . "wp-config.php")){
+						if(file_exists($main . "wp-content")){
+							if(file_exists($main . "wp-admin")){
+								if(file_exists($main . "wp-includes")){
+									break;	
+								}
+							}
+						}
+					}
+				}
+				if(is_dir($main.$file."/") && $file != '.' && $file != '..'){
+					$this->image_recurse($main.$file."/", $command, $files);
+				}
+				else{
+					if(is_file($main . $file)){
+						if(strpos($file,".jpg")!==FALSE || strpos($file,".png")!==FALSE || strpos($file,".gif")!==FALSE){
+							$this->counter++;
+							if(is_callable($command)){
+								if(!in_array($main . $file, $this->whitelist)){
+									$data = $command[0]->$command[1]($main . $file);
+									if(!is_array($data)){
+										if(trim($data)!=""){
+											array_push($files, trim($data));
+										}
+									}else{
+										array_push($files, $data);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			return array($this->counter, $files);
+		}
+
+
+
+		function image_files_list(){
+		
+			$this->dir = $this->get_config_path();			
+			$files = array();
+			$this->counter = 0;
+			
+			global $wpdb;
+			
+			$site_files = $this->image_recurse($this->dir, array($this, "get_images"), $files);
+			
+			return $site_files;
+			
+		}
+	
 	
 		function zip_data($file){
 			$zip = new ZipArchive;
@@ -498,6 +762,40 @@
 			}
 		}
 		
+		function get_error_log($file){
+			if(strpos($file,"error_log")!==FALSE){
+				return array(
+							"name" => $file, 
+							"size" => filesize($file),
+							"time" => filemtime($file), 
+						);
+			}
+		}
+		
+		function get_data_eval_code($file){
+		
+			$matches = array();
+		
+			$key = '/(?<![_|a-z0-9|\.])eval\([^\)"]/i';
+			$content = file_get_contents($file);
+			if(preg_match($key,$content,$matches)){
+				$lines = explode("\n",$content);
+				if(count($lines)==1){
+					$lines = explode("\r",$content);
+				}
+				foreach($lines as $line){
+					if(preg_match($key,$line,$matches)){
+						if(!preg_match('/([\/]+)(.+)eval/i',$line,$matches)){
+							return array(
+										"name" => $file,
+										"time" => filemtime($file)
+									);
+						}
+					}
+				}
+			}
+		}
+		
 		function get_data_basic_core($file){
 			if(strpos($file,"wp-content")==FALSE){
 				return array(
@@ -530,35 +828,6 @@
 							);
 				}
 			}
-		}
-	
-		function recurse($main, $command, &$files){
-			$dirHandle = opendir($main);
-			while($file = readdir($dirHandle)){
-				if(is_dir($main.$file."/") && $file != '.' && $file != '..'){
-					$this->recurse($main.$file."/", $command, $files);
-				}
-				else{
-					if(is_file($main . $file)){
-						if(strpos($file,".php")!==FALSE){
-							$this->counter++;
-							if(is_callable($command)){
-								if(!in_array($main . $file, $this->whitelist)){
-									$data = $command[0]->$command[1]($main . $file);
-									if(!is_array($data)){
-										if(trim($data)!=""){
-											array_push($files, trim($data));
-										}
-									}else{
-										array_push($files, $data);
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			return array($this->counter, $files);
 		}
 	
 	}

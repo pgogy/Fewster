@@ -3,6 +3,7 @@
 	class fewster_ajax{
 	
 		function __construct(){
+			add_action("wp_ajax_fewster_image", array($this, "image"));
 			add_action("wp_ajax_fewster_direct_core", array($this, "core"));
 			add_action("wp_ajax_fewster_accept_scan", array($this, "accept"));
 			add_action("wp_ajax_fewster_direct_addons", array($this, "addons"));
@@ -273,6 +274,25 @@
 			return array($status, $reason);
 
 		}
+
+		function image(){
+			if(wp_verify_nonce($_POST['nonce'],"fewster_image_check")){
+				$status = true;
+				
+				if(strpos(file_get_contents($_POST['file']),"<?PHP")!==FALSE){
+					$status = false;
+					$reason = __("PHP found in the file");
+				}
+
+				if(strpos(file_get_contents($_POST['file']),"<?")!==FALSE){
+					$status = false;
+					$reason = __("PHP found in the file");
+				}
+			}
+			echo json_encode(array($status, $reason));
+			die();
+		}
+
 
 	}
 	

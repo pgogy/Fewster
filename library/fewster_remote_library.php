@@ -33,6 +33,58 @@
 				}
 			}
 		}
+		
+		function get_plugin_data($file){
+		
+			require_once("fewster_library.php");
+			$library = new fewster_library;
+		
+			$parts = explode("/",$file);
+			$plugin_name = $parts[0];
+
+			$found = 1;	
+			$version = 0;
+
+			$content = $library->get_url("https://plugins.svn.wordpress.org/" . $plugin_name . "/trunk/" . $parts[1]);
+			if($content[0]['http_code']!=200){
+				$found = 0; 
+			}
+			$version = explode ("ersion:", $content[1]);
+			$number = explode("\r", $version[1]);
+			if(count($number)==1){
+				$number = explode("\n", $version[1]);
+			}
+			return array($found,trim($number[0]));
+			
+		}
+		
+		function get_theme_data($file){
+		
+			require_once("fewster_library.php");
+			$library = new fewster_library;
+		
+			$parts = explode("/",$file);
+			$theme_name = $parts[0];
+
+			$found = 1;	
+			$version = 0;
+
+			$content = $library->get_url("https://themes.svn.wordpress.org/" . $theme_name . "/");
+			if($content[0]['http_code']!=200){
+				$found = 0; 
+			}else{
+				$version = explode ("<li>", $content[1]);
+				
+				$latest = array_pop($version);
+				
+				$number = explode("</li>", $latest);
+				
+				$version = strip_tags(str_replace("/","",$number[0]));
+			}
+			
+			return array($found,trim($version));
+			
+		}
 
 		function get_theme($file = null){
 		
