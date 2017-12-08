@@ -11,6 +11,7 @@
 		function scripts(){
 			if(isset($_GET['page'])){
 				if($_GET['page']=="fewster-theme-check"){
+					wp_enqueue_style( 'fewster_admin', plugin_dir_url(dirname(__FILE__) . "/../fewster.php") . "css/admin.css" );
 					wp_enqueue_script( 'fewster-select', plugin_dir_url(dirname(__FILE__) . "/../fewster.php") . 'js/select.js', array( 'jquery' ) );
 					wp_enqueue_script( 'fewster-integrity', plugin_dir_url(dirname(__FILE__) . "/../fewster.php") . 'js/integrity-check.js', array( 'jquery' ) );
 					wp_localize_script( 'fewster-integrity', 'fewster_select', 
