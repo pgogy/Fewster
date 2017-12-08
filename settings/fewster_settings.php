@@ -13,6 +13,9 @@ class fewster_settings{
 		$new_schedule = false;
 		$size_schedule = false;
 		$time_schedule = false;
+		$eval_schedule = false;
+		$error_schedule = false;
+		$addon_schedule = false;
 		
 		if(isset($_GET['page'])){
 		
@@ -22,6 +25,9 @@ class fewster_settings{
 				$new = get_option("fewster_new_file");
 				$size = get_option("fewster_size_file");
 				$time = get_option("fewster_time_file");
+				$eval = get_option("fewster_eval_file");
+				$errorlog = get_option("fewster_error_file");
+				$addon = get_option("fewster_addon_file");
 				
 				foreach($crons as $timestamp => $job){
 		
@@ -52,6 +58,33 @@ class fewster_settings{
 						}
 					}
 					
+					if(isset($job['fewster_eval_scan'])){
+						$details = array_pop($job['fewster_eval_scan']);
+						if($details['schedule']!=$time){
+							wp_unschedule_event( $timestamp, 'fewster_eval_scan');
+							wp_schedule_event( time(), $time, 'fewster_eval_scan');
+							$eval_schedule = true;
+						}
+					}
+					
+					if(isset($job['fewster_error_log_scan'])){
+						$details = array_pop($job['fewster_error_log_scan']);
+						if($details['schedule']!=$time){
+							wp_unschedule_event( $timestamp, 'fewster_error_log_scan');
+							wp_schedule_event( time(), $time, 'fewster_error_log_scan');
+							$error_schedule = true;
+						}
+					}
+					
+					if(isset($job['fewster_addon_check_scan'])){
+						$details = array_pop($job['fewster_addon_check_scan']);
+						if($details['schedule']!=$time){
+							wp_unschedule_event( $timestamp, 'fewster_addon_check_scan');
+							wp_schedule_event( time(), $time, 'fewster_addon_check_scan');
+							$error_schedule = true;
+						}
+					}
+					
 				}
 				
 				if(!$new_schedule){
@@ -64,6 +97,18 @@ class fewster_settings{
 				
 				if(!$time_schedule){
 					wp_schedule_event( time(), $time, 'fewster_time_scan');
+				}
+				
+				if(!$eval_schedule){
+					wp_schedule_event( time(), $time, 'fewster_eval_scan');
+				}
+				
+				if(!$error_schedule){
+					wp_schedule_event( time(), $time, 'fewster_error_log_scan');
+				}
+				
+				if(!$addon_schedule){
+					wp_schedule_event( time(), $time, 'fewster_addon_check_scan');
 				}
 				
 			}
@@ -110,6 +155,30 @@ class fewster_settings{
 			'fewster-settings',
 			'fewster_setting_section'
 		);
+
+		add_settings_field(
+			'fewster_eval_file',
+			'Eval function scan frequency',
+			array($this,'eval_file_function'),
+			'fewster-settings',
+			'fewster_setting_section'
+		);
+
+		add_settings_field(
+			'fewster_error_log_file',
+			'Error log scan frequency',
+			array($this,'error_log_file_function'),
+			'fewster-settings',
+			'fewster_setting_section'
+		);
+
+		add_settings_field(
+			'fewster_addon_file',
+			'Error log scan frequency',
+			array($this,'addon_file_function'),
+			'fewster-settings',
+			'fewster_setting_section'
+		);
 		
 		add_settings_field(
 			'fewster_quiet_mode',
@@ -139,6 +208,9 @@ class fewster_settings{
 		register_setting( 'fewster-settings', 'fewster_new_file' );
 		register_setting( 'fewster-settings', 'fewster_size_file' );
 		register_setting( 'fewster-settings', 'fewster_time_file' );
+		register_setting( 'fewster-settings', 'fewster_eval_file' );
+		register_setting( 'fewster-settings', 'fewster_error_file' );
+		register_setting( 'fewster-settings', 'fewster_addon_file' );
 		register_setting( 'fewster-settings', 'fewster_quiet_mode' );
 		register_setting( 'fewster-settings', 'fewster_installatron_ignore' );
 		register_setting( 'fewster-settings', 'fewster_no_bad_news' );
@@ -300,6 +372,159 @@ class fewster_settings{
 		echo ">" . __("Weekly") . "</option>";
 		echo "<option value='never' ";
 		if(get_option("fewster_new_file")=="never"){
+			echo " selected ";
+		}
+		echo ">" . __("Never") . "</option>";
+		echo "</select>";
+	}
+
+	function eval_file_function() {
+		echo "<p>" . __("How often should Fewster scan for evail functions") . "</p>";
+		echo '<select name="fewster_eval_file" id="fewster_eval_file">';
+		echo "<option value='hourly' ";
+		if(get_option("fewster_eval_file")=="hourly"){
+			echo " selected ";
+		}
+		echo ">" . __("Hourly") . "</option>";
+		echo "<option value='twohours' ";
+		if(get_option("fewster_eval_file")=="twohours"){
+			echo " selected ";
+		}
+		echo ">" . __("Two hours") . "</option>";
+		echo "<option value='fourhours' ";
+		if(get_option("fewster_eval_file")=="fourhours"){
+			echo " selected ";
+		}
+		echo ">" . __("Four hours") . "</option>";
+		echo "<option value='eighthours' ";
+		if(get_option("fewster_eval_file")=="eighthours"){
+			echo " selected ";
+		}
+		echo ">" . __("Eight hours") . "</option>";
+		echo "<option value='twicedaily' ";
+		if(get_option("fewster_eval_file")=="twicedaily"){
+			echo " selected ";
+		}
+		echo ">" . __("Twice Daily") . "</option>";
+		echo "<option value='daily' ";
+		if(get_option("fewster_eval_file")=="daily"){
+			echo " selected ";
+		}
+		echo ">" . __("Daily") . "</option>";
+		echo "<option value='twodays' ";
+		if(get_option("fewster_new_file")=="twodays"){
+			echo " selected ";
+		}
+		echo ">" . __("Every two days") . "</option>";
+		echo "<option value='weekly' ";
+		if(get_option("fewster_new_file")=="weekly"){
+			echo " selected ";
+		}
+		echo ">" . __("Weekly") . "</option>";
+		echo "<option value='never' ";
+		if(get_option("fewster_eval_file")=="never"){
+			echo " selected ";
+		}
+		echo ">" . __("Never") . "</option>";
+		echo "</select>";
+	}
+
+	function error_log_file_function() {
+		echo "<p>" . __("How often should Fewster scan for error log files") . "</p>";
+		echo '<select name="fewster_error_file" id="fewster_error_file">';
+		echo "<option value='hourly' ";
+		if(get_option("fewster_error_file")=="hourly"){
+			echo " selected ";
+		}
+		echo ">" . __("Hourly") . "</option>";
+		echo "<option value='twohours' ";
+		if(get_option("fewster_error_file")=="twohours"){
+			echo " selected ";
+		}
+		echo ">" . __("Two hours") . "</option>";
+		echo "<option value='fourhours' ";
+		if(get_option("fewster_error_file")=="fourhours"){
+			echo " selected ";
+		}
+		echo ">" . __("Four hours") . "</option>";
+		echo "<option value='eighthours' ";
+		if(get_option("fewster_error_file")=="eighthours"){
+			echo " selected ";
+		}
+		echo ">" . __("Eight hours") . "</option>";
+		echo "<option value='twicedaily' ";
+		if(get_option("fewster_error_file")=="twicedaily"){
+			echo " selected ";
+		}
+		echo ">" . __("Twice Daily") . "</option>";
+		echo "<option value='daily' ";
+		if(get_option("fewster_error_file")=="daily"){
+			echo " selected ";
+		}
+		echo ">" . __("Daily") . "</option>";
+		echo "<option value='twodays' ";
+		if(get_option("fewster_new_file")=="twodays"){
+			echo " selected ";
+		}
+		echo ">" . __("Every two days") . "</option>";
+		echo "<option value='weekly' ";
+		if(get_option("fewster_new_file")=="weekly"){
+			echo " selected ";
+		}
+		echo ">" . __("Weekly") . "</option>";
+		echo "<option value='never' ";
+		if(get_option("fewster_error_file")=="never"){
+			echo " selected ";
+		}
+		echo ">" . __("Never") . "</option>";
+		echo "</select>";
+	}
+
+	function addon_file_function() {
+		echo "<p>" . __("How often should Fewster scan for plugin and theme updates") . "</p>";
+		echo '<select name="fewster_addon_file" id="fewster_addon_file">';
+		echo "<option value='hourly' ";
+		if(get_option("fewster_addon_file")=="hourly"){
+			echo " selected ";
+		}
+		echo ">" . __("Hourly") . "</option>";
+		echo "<option value='twohours' ";
+		if(get_option("fewster_addon_file")=="twohours"){
+			echo " selected ";
+		}
+		echo ">" . __("Two hours") . "</option>";
+		echo "<option value='fourhours' ";
+		if(get_option("fewster_addon_file")=="fourhours"){
+			echo " selected ";
+		}
+		echo ">" . __("Four hours") . "</option>";
+		echo "<option value='eighthours' ";
+		if(get_option("fewster_addon_file")=="eighthours"){
+			echo " selected ";
+		}
+		echo ">" . __("Eight hours") . "</option>";
+		echo "<option value='twicedaily' ";
+		if(get_option("fewster_addon_file")=="twicedaily"){
+			echo " selected ";
+		}
+		echo ">" . __("Twice Daily") . "</option>";
+		echo "<option value='daily' ";
+		if(get_option("fewster_addon_file")=="daily"){
+			echo " selected ";
+		}
+		echo ">" . __("Daily") . "</option>";
+		echo "<option value='twodays' ";
+		if(get_option("fewster_new_file")=="twodays"){
+			echo " selected ";
+		}
+		echo ">" . __("Every two days") . "</option>";
+		echo "<option value='weekly' ";
+		if(get_option("fewster_new_file")=="weekly"){
+			echo " selected ";
+		}
+		echo ">" . __("Weekly") . "</option>";
+		echo "<option value='never' ";
+		if(get_option("fewster_addon_file")=="never"){
 			echo " selected ";
 		}
 		echo ">" . __("Never") . "</option>";
